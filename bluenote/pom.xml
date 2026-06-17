@@ -39,14 +39,23 @@
         <spring-boot.version>3.2.5</spring-boot.version>
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
         <spring-cloud.version>2023.0.0</spring-cloud.version>
+        <jackson.version>2.16.1</jackson.version>
     </properties>
 
     <!-- 统一依赖管理 -->
     <dependencyManagement>
         <dependencies>
+            <!-- 业务通用组件 -->
             <dependency>
                 <groupId>com.tefire</groupId>
                 <artifactId>bluenote-common</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 业务接口日志组件 -->
+            <dependency>
+                <groupId>com.tefire</groupId>
+                <artifactId>bluenote-spring-boot-starter-biz-operationlog</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -81,6 +90,19 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            
+            <!-- Jackson -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
             
         </dependencies>

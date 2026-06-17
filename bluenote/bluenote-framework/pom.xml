@@ -18,6 +18,7 @@
 
     <modules>
         <module>bluenote-common</module>
+        <module>bluenote-spring-boot-starter-biz-operationlog</module>
     </modules>
 
 </project>
