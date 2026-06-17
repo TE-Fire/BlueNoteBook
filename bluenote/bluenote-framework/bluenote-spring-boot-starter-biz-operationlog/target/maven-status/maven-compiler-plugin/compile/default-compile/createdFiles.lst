@@ -1,0 +1,3 @@
+com\tefire\framework\biz\operationlog\config\ApiOperationLogAutoConfiguration.class
+com\tefire\framework\biz\operationlog\aspect\ApiOperationLogAspect.class
+com\tefire\framework\biz\operationlog\aspect\ApiOperationLog.class
