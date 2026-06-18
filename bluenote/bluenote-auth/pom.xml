@@ -30,6 +30,12 @@
             <artifactId>bluenote-spring-boot-starter-biz-operationlog</artifactId>
         </dependency>
 
+         <!-- java8日期类对象与json转换组件 -->
+        <dependency>
+            <groupId>com.tefire</groupId>
+            <artifactId>bluenote-spring-boot-starter-jackson</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

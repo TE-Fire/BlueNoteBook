@@ -62,6 +62,13 @@
                 <version>${revision}</version>
             </dependency>
 
+            <!-- java8日期类对象与json转换组件 -->
+            <dependency>
+                <groupId>com.tefire</groupId>
+                <artifactId>bluenote-spring-boot-starter-jackson</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
