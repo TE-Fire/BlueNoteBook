@@ -16,9 +16,40 @@
 *.nar
 *.ear
 *.zip
+*.tar
 *.tar.gz
 *.rar
+*.gz
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs
 hs_err_pid*
 replay_pid*
+
+# Maven 构建产物
+target/
+
+# IDE 文件
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时文件
+*.tmp
+*.bak
+*.swp
+*~
+
+# Maven 本地仓库
+.m2/
+
+# 各类 target 目录（多模块项目）
+**/target/
