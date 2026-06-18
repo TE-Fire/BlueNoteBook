@@ -2,13 +2,21 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Test",
+            "request": "launch",
+            "mainClass": "com.tefire.auth.controller.Test",
+            "projectName": "bluenote-auth"
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-Main<bluenote-auth>",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "mainClass": "com.tefire.Main",
             "projectName": "bluenote-auth",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=60133 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=bluenote-auth"
         }
     ]
 }
