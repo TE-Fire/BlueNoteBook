@@ -40,6 +40,7 @@
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
         <spring-cloud.version>2023.0.0</spring-cloud.version>
         <jackson.version>2.16.1</jackson.version>
+        <mysql-connector-java.version>8.0.29</mysql-connector-java.version>
     </properties>
 
     <!-- 统一依赖管理 -->
@@ -103,6 +104,20 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
+            </dependency>
+
+            <!-- Mybatis -->
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>3.0.3</version>
+            </dependency>
+
+			<!-- MySQL 驱动 -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql-connector-java.version}</version>
             </dependency>
             
         </dependencies>
