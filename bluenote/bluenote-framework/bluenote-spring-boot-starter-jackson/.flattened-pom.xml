@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.tefire</groupId>
+    <artifactId>bluenote</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <groupId>com.tefire</groupId>
+  <artifactId>bluenote-spring-boot-starter-jackson</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>bluenote-spring-boot-starter-jackson</name>
+  <description>Jackson自动配置Starter</description>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.tefire</groupId>
+      <artifactId>bluenote-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+</project>
