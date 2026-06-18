@@ -1,10 +1,18 @@
+/*
+ * @Author: TE-Fire 3037749727@qq.com
+ * @Date: 2026-06-17 20:23:47
+ * @Description: 
+ */
 package com.tefire.auth.controller;
 
 import java.time.LocalDateTime;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tefire.auth.domain.dataobject.UserDO;
 import com.tefire.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.tefire.framework.common.response.Response;
 
@@ -28,5 +36,11 @@ public class TestController {
                         .nickName("犬小哈")
                         .createTime(LocalDateTime.now())
                         .build());
+    }
+
+    @PostMapping("/test3")
+    @ApiOperationLog(description = "测试接口2")
+    public Response<UserDO> test2(@RequestBody UserDO user) {
+        return Response.success(user);
     }
 }
