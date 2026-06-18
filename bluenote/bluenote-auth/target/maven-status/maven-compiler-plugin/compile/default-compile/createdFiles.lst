@@ -1,2 +1,4 @@
+com\tefire\auth\controller\User.class
 com\tefire\auth\controller\TestController.class
+com\tefire\auth\controller\User$UserBuilder.class
 com\tefire\Main.class

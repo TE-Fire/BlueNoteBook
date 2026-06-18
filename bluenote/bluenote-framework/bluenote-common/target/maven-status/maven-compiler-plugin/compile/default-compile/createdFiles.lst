@@ -2,3 +2,4 @@ com\tefire\framework\common\response\Response.class
 com\tefire\framework\common\exception\BizException.class
 com\tefire\framework\common\util\JsonUtils.class
 com\tefire\framework\common\exception\BaseExceptionInterface.class
+com\tefire\framework\common\constant\DateConstants.class
