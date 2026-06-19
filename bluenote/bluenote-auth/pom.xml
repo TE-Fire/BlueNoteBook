@@ -65,6 +65,12 @@
             <artifactId>druid-spring-boot-3-starter</artifactId>
         </dependency>
 
+         <!-- Sa-Token 权限认证 -->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
