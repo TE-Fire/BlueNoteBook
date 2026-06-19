@@ -4,8 +4,8 @@
 
     <!-- 应用名称 -->
     <property scope="context" name="appName" value="auth"/>
-    <!-- 自定义日志输出路径 -->
-    <property name="LOG_DIR" value="./logs"/>
+    <!-- 自定义日志输出路径（相对于模块根目录） -->
+    <property name="LOG_DIR" value="bluenote/bluenote-auth/logs"/>
     <!-- 动态获取当前日期 -->
     <timestamp key="currentDate" datePattern="yyyy-MM-dd"/>
     <!-- 日志文件名（带日期） -->
