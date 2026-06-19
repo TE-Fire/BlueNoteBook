@@ -48,6 +48,7 @@
         <guava.version>33.0.0-jre</guava.version>
         <hutool.version>5.8.26</hutool.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
+        <dypnsapi.version>2.0.0</dypnsapi.version>
     </properties>
 
     <!-- 统一依赖管理 -->
@@ -165,6 +166,13 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+
+            <!-- 阿里云短信发送 -->
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>dypnsapi20170525</artifactId>
+                <version>${dypnsapi.version}</version>
             </dependency>
 
              
