@@ -1,8 +1,3 @@
-/*
- * @Author: TE-Fire 3037749727@qq.com
- * @Date: 2026-06-20 13:57:40
- * @Description: 
- */
 package com.tefire.auth.service.impl;
 
 import java.time.LocalDateTime;
@@ -14,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.tefire.auth.constant.RedisKeyConstants;
 import com.tefire.auth.constant.RoleConstants;
@@ -65,9 +61,8 @@ public class UserServiceImpl implements UserService{
         switch (loginTypeEnum) {
             case VERIFICATION_CODE:
                 String verificationCode  = userLoginReqVO.getCode();
-                if (StringUtils.isBlank(verificationCode)) {
-                    return Response.fail(ResponseCodeEnum.PARAM_NOT_VALID.getErrorCode(), "验证码不能为空");
-                }
+                // 校验验证码是否为空
+                Preconditions.checkArgument(StringUtils.isNotBlank(verificationCode), "验证码不能为空");
                 String verificationCodeKey = RedisKeyConstants.buildVerificationCodeKey(phone);
                 String sentCode = (String) redisTemplate.opsForValue().get(verificationCodeKey);
                 
