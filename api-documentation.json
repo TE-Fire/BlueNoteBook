@@ -1,0 +1,239 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "BlueNote 认证服务 API",
+    "description": "BlueNote 认证服务（Auth Module）的 RESTful API 接口文档",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "本地开发环境"
+    }
+  ],
+  "paths": {
+    "/user/login": {
+      "post": {
+        "summary": "用户登录/注册",
+        "description": "用户登录或注册接口，支持手机号验证码登录和账号密码登录两种方式",
+        "tags": ["用户认证"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLoginReqVO"
+              },
+              "examples": {
+                "验证码登录": {
+                  "value": {
+                    "phone": "13800138000",
+                    "code": "123456",
+                    "password": null,
+                    "type": 1
+                  }
+                },
+                "密码登录": {
+                  "value": {
+                    "phone": "13800138000",
+                    "code": null,
+                    "password": "123456",
+                    "type": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                },
+                "examples": {
+                  "成功": {
+                    "value": {
+                      "success": true,
+                      "message": null,
+                      "errorCode": null,
+                      "data": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  },
+                  "失败": {
+                    "value": {
+                      "success": false,
+                      "message": "验证码错误",
+                      "errorCode": "AUTH-20001",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verification/code/send": {
+      "post": {
+        "summary": "发送短信验证码",
+        "description": "发送短信验证码到指定手机号",
+        "tags": ["验证码服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendVerificationCodeReqVO"
+              },
+              "examples": {
+                "发送验证码": {
+                  "value": {
+                    "phone": "13800138000"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                },
+                "examples": {
+                  "成功": {
+                    "value": {
+                      "success": true,
+                      "message": "短信发送成功",
+                      "errorCode": null,
+                      "data": null
+                    }
+                  },
+                  "失败": {
+                    "value": {
+                      "success": false,
+                      "message": "发送短信太频繁，请稍后再试",
+                      "errorCode": "AUTH-20002",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserLoginReqVO": {
+        "type": "object",
+        "description": "登录请求入参",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "手机号",
+            "example": "13800138000"
+          },
+          "code": {
+            "type": "string",
+            "description": "验证码（验证码登录时必填）",
+            "example": "123456"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码（密码登录时必填）",
+            "example": "123456"
+          },
+          "type": {
+            "type": "integer",
+            "description": "登录类型：1-手机号验证码登录，2-账号密码登录",
+            "example": 1
+          }
+        },
+        "required": ["phone", "type"]
+      },
+      "SendVerificationCodeReqVO": {
+        "type": "object",
+        "description": "获取验证码接口请求体",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "手机号",
+            "example": "13800138000"
+          }
+        },
+        "required": ["phone"]
+      },
+      "ResponseString": {
+        "type": "object",
+        "description": "通用响应体（String类型）",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "异常码"
+          },
+          "data": {
+            "type": "string",
+            "description": "响应数据（Token）"
+          }
+        }
+      },
+      "ResponseObject": {
+        "type": "object",
+        "description": "通用响应体（Object类型）",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "异常码"
+          },
+          "data": {
+            "type": "object",
+            "description": "响应数据"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "用户认证",
+      "description": "用户登录、注册相关接口"
+    },
+    {
+      "name": "验证码服务",
+      "description": "短信验证码相关接口"
+    }
+  ]
+}
