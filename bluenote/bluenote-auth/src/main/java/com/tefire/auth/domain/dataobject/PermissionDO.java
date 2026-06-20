@@ -1,7 +1,6 @@
 package com.tefire.auth.domain.dataobject;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,35 +8,31 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 /*
  * @Author: TE-Fire 3037749727@qq.com
- * @Date: 2026-06-20 13:40:05
- * @Description: 用户表实体类
+ * @Date: 2026-06-20 14:40:57
+ * @Description: 权限表实体类
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserDO {
+public class PermissionDO {
     private Long id;
 
-    private String xiaohashuId;
+    private Long parentId;
 
-    private String password;
+    private String name;
 
-    private String nickname;
+    private Integer type;
 
-    private String avatar;
+    private String menuUrl;
 
-    private Date birthday;
+    private String menuIcon;
 
-    private String backgroundImg;
+    private Integer sort;
 
-    private String phone;
-
-    private Integer sex;
+    private String permissionKey;
 
     private Integer status;
-
-    private String introduction;
 
     private LocalDateTime createTime;
 
