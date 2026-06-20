@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.tefire.auth.constant.RedisKeyConstants;
 import com.tefire.auth.enums.ResponseCodeEnum;
 import com.tefire.auth.model.SendVerificationCodeReqVO;
+import com.tefire.auth.service.VerificationCodeService;
 import com.tefire.auth.sms.AliyunSmsHelper;
 import com.tefire.framework.common.exception.BizException;
 import com.tefire.framework.common.response.Response;

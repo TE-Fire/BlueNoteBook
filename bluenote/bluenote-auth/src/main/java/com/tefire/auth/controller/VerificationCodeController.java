@@ -1,11 +1,10 @@
-
 package com.tefire.auth.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tefire.auth.model.SendVerificationCodeReqVO;
-import com.tefire.auth.service.impl.VerificationCodeService;
+import com.tefire.auth.service.VerificationCodeService;
 import com.tefire.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.tefire.framework.common.response.Response;
 
