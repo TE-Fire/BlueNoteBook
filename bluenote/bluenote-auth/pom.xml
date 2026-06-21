@@ -95,6 +95,18 @@
             <artifactId>dypnsapi20170525</artifactId>
         </dependency>
 
+        <!-- Spring Cloud Bootstrap (Spring Boot 3.x 需要) -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
+
+        <!-- Nacos 配置中心 -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
