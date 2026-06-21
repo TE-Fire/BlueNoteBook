@@ -59,6 +59,141 @@ public Long registerUser(String phone) {
 | **回滚决策** | 注解属性静态配置 | 代码内动态判断 |
 | **异常处理** | 回滚必然伴随异常抛出 | 回滚可以不抛异常，返回业务值 |
 
+### 1.4 深入理解：为什么同类自调用不走 AOP 代理？
+
+这是声明式事务最高频的坑，也是理解声明式 vs 编程式差异的关键。先看一段代码：
+
+```java
+@Service
+public class UserService {
+
+    @Transactional(rollbackFor = Exception.class)
+    public void publicMethod() {
+        // 这里调用 privateMethod，事务会生效吗？
+        this.privateMethod();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void privateMethod() {
+        // 这里的 @Transactional 不会生效！
+        userMapper.insert(user);
+        throw new RuntimeException("这行异常不会触发回滚");
+    }
+}
+```
+
+调用 `publicMethod()` → 事务正常开启 → 内部调用 `this.privateMethod()` → `privateMethod` 的 `@Transactional` **被无视** → 如果 `privateMethod` 里抛异常，事务**照常提交**。
+
+原因要从 Spring AOP 的工作原理说起。
+
+#### Spring 容器里的是代理对象，不是原始对象
+
+Spring 在启动时发现 `UserService` 有 `@Transactional` 注解，不会直接把原始对象放入容器，而是给它包了一层**代理对象（CGILIB Proxy）**，然后把代理对象注册到容器中：
+
+```
+Spring 容器中的 Bean 不是:
+
+    userService → UserService 原始对象
+
+而是:
+
+    userService → Proxy（代理） → UserService 原始对象（target）
+```
+
+所以当你从外部调用一个 Bean 的方法时，实际的调用链是：
+
+```
+调用方 → 代理对象 → [TransactionInterceptor 拦截] → 开启事务 → 调用目标方法 → 提交事务
+         ↑                                                           ↑
+    只有经过代理时，AOP 才会生效                             这是你的原始代码
+```
+
+#### this.xxx() 短路了代理
+
+当你写 `this.privateMethod()` 时，调用链变成了：
+
+```
+调用方 → 代理 → [拦截, 开事务] → publicMethod() 
+                                    → this.privateMethod()  ← 直接调用，绕过了代理！
+                                    ↑
+                                这里的 @Transactional 完全没被看到
+                                因为根本没有经过代理层
+```
+
+`this` 指向的是**原始对象**，不是代理对象。所以 `this.privateMethod()` 是 Java 的普通方法调用，直接跳到目标方法，**不会经过代理层，AOP 全部失效**。
+
+#### 图解
+
+```
+外部调用者
+    │
+    ▼
+┌─────────────┐
+│   代理对象    │  ← 只有经过这一层，AOP 才生效
+│  (Proxy)    │
+└─────┬───────┘
+      │
+      ▼
+┌─────────────┐
+│  原始对象     │  ← this 指向这里
+│  (Target)   │
+│             │
+│ publicMethod()───── this.privateMethod() ──→ 直接跳转，绕过代理！
+│  @Transactional         @Transactional
+│  ✅ 生效                 ❌ 不生效
+└─────────────┘
+```
+
+#### 怎么解决？
+
+三种方案：
+
+```java
+// 方案1：自己注入自己（利用代理）
+@Service
+public class UserService {
+    @Autowired
+    private UserService self;  // Spring 注入的是代理对象！
+
+    public void publicMethod() {
+        self.privateMethod();  // 用 self 而不是 this → 经过代理 → @Transactional 生效
+    }
+}
+
+// 方案2：拆到另一个 Service 类（推荐）
+@Service
+public class UserService {
+    @Autowired
+    private UserRegisterService registerService;
+
+    public void publicMethod() {
+        registerService.register();  // 跨 Bean 调用 → 经过代理 → 生效
+    }
+}
+
+// 方案3：用编程式事务（根本不用代理）
+@Service
+public class UserService {
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
+    public void publicMethod() {
+        transactionTemplate.execute(status -> {
+            // 直接操作事务，不依赖代理 → 永远不会有自调用问题
+        });
+    }
+}
+```
+
+#### 这跟编程式有什么关系？
+
+**编程式事务完全不依赖 AOP 代理，所以永远不会有自调用问题。** `TransactionTemplate` 是你直接在方法体里调用的，不管你是被外部调用还是被 `this` 内部调用，`execute()` 都会老老实实地开启事务。
+
+这也是文档开头说的"控制权归属"差异在实践中最直接的一个体现：
+
+- 声明式：你依赖 Spring 在代理层帮你做事 → 你必须遵守代理的规则（不能自调用、方法必须 public）→ 控制权在框架
+- 编程式：你自己在代码里调用 `execute()` → 没有代理、没有规则约束 → 控制权在你
+
 ---
 
 ## 二、使用场景：核心判断标准
