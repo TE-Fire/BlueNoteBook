@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: bluenote-auth
+  cloud:
+    nacos:
+      config:
+        server-addr: http://127.0.0.1:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        data-id: ${spring.application.name}
+        file-extension: yaml
+        refresh-enabled: true
