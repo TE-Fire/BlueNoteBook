@@ -1,5 +1,7 @@
 package com.tefire.auth.domain.mapper;
 
+import java.util.List;
+
 import com.tefire.auth.domain.dataobject.PermissionDO;
 
 public interface PermissionDOMapper {
@@ -14,4 +16,11 @@ public interface PermissionDOMapper {
     int updateByPrimaryKeySelective(PermissionDO record);
 
     int updateByPrimaryKey(PermissionDO record);
+
+    /**
+     * 查询 APP 端所有被启用的权限
+     *
+     * @return
+     */
+    List<PermissionDO> selectAppEnabledList();
 }

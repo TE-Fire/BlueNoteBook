@@ -1,5 +1,9 @@
 package com.tefire.auth.domain.mapper;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
 import com.tefire.auth.domain.dataobject.RolePermissionDO;
 
 public interface RolePermissionDOMapper {
@@ -14,4 +18,12 @@ public interface RolePermissionDOMapper {
     int updateByPrimaryKeySelective(RolePermissionDO record);
 
     int updateByPrimaryKey(RolePermissionDO record);
+
+    /**
+     * 根据角色 ID 集合批量查询
+     *
+     * @param roleIds
+     * @return
+     */
+    List<RolePermissionDO> selectByRoleIds(@Param("roleIds") List<Long> roleIds);
 }

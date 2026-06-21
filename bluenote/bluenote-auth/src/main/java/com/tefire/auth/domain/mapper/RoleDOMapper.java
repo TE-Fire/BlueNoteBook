@@ -1,5 +1,7 @@
 package com.tefire.auth.domain.mapper;
 
+import java.util.List;
+
 import com.tefire.auth.domain.dataobject.RoleDO;
 
 public interface RoleDOMapper {
@@ -14,4 +16,11 @@ public interface RoleDOMapper {
     int updateByPrimaryKeySelective(RoleDO record);
 
     int updateByPrimaryKey(RoleDO record);
+
+    /**
+     * 查询所有被启用的角色
+     *
+     * @return
+     */
+    List<RoleDO> selectEnabledList();
 }
