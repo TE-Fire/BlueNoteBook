@@ -20,6 +20,7 @@
     <modules>
         <module>bluenote-auth</module>
         <module>bluenote-framework</module>
+        <module>bluenote-gateway</module>
     </modules>
 
     <properties>
