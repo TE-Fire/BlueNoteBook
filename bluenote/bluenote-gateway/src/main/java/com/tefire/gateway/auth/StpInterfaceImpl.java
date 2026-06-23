@@ -33,8 +33,9 @@ public class StpInterfaceImpl implements StpInterface{
     @Resource
     private ObjectMapper objectMapper;
 
+
     /**
-     * 获取用户权限
+     * 获取用户权限列表
      *
      * @param loginId
      * @param loginType
@@ -42,44 +43,9 @@ public class StpInterfaceImpl implements StpInterface{
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        try {
-            log.info("## 获取用户权限列表, loginId: {}", loginId);
+        log.info("## 获取用户权限列表, loginId: {}", loginId);
 
-            // 构建 用户-角色 Redis - Key
-            String userRolesKey = RedisKeyConstants.buildUserRoleKey(Long.valueOf(loginId.toString()));
-
-            // 根据用户 ID ，从 reids 中获取该用户的角色集合
-            String useRolesValue = redisTemplate.opsForValue().get(userRolesKey);
-
-            if (StringUtils.isBlank(useRolesValue)) {
-                return null;
-            }
-
-            // 将 JSON 字符串转换为 List<String> 集合
-            return objectMapper.readValue(useRolesValue, new TypeReference<>() {});
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-        // 返回此 loginId 拥有的权限列表
-        
-
-    }
-
-    /**
-     * 获取用户角色
-     *
-     * @param loginId
-     * @param loginType
-     * @return
-     */
-    @Override
-    public List<String> getRoleList(Object loginId, String loginType) {
-        log.info("## 获取用户角色列表, loginId: {}", loginId);
-
-        // 构建 用户-角色 Redis - Key
         String userRolesKey = RedisKeyConstants.buildUserRoleKey(Long.valueOf(loginId.toString()));
-        // 根据用户 ID 获取该用户下的角色集合
         String useRolesValue = redisTemplate.opsForValue().get(userRolesKey);
 
         if (StringUtils.isBlank(useRolesValue)) {
@@ -87,47 +53,60 @@ public class StpInterfaceImpl implements StpInterface{
         }
 
         try {
-            // 将 JSON 字符串转换为 List<String> 角色集合
             List<String> userRoleKeys = objectMapper.readValue(useRolesValue, new TypeReference<>() {});
 
             if (CollUtil.isNotEmpty(userRoleKeys)) {
-                // 查询角色对应的权限，构建角色 - 权限 Redis Key集合
                 List<String> rolePermissionsKeys = userRoleKeys.stream()   
                                     .map(RedisKeyConstants::buildRolePermissionsKey)
                                     .toList();
 
-                // 通过 key 集合批量查询权限，提升查询性能。
                 List<String> rolePermissionsValues = redisTemplate.opsForValue().multiGet(rolePermissionsKeys);
 
                 if (CollUtil.isNotEmpty(rolePermissionsValues)) {
                     List<String> permissions = Lists.newArrayList();
-                    // 遍历所有角色的权限集合，统一添加到 permissions 集合中
                     rolePermissionsValues.forEach(jsonValue -> {
                         try {
-                            // 将 JSON 字符串转换为 List<String> 权限集合
                             List<String> rolePermissions = objectMapper.readValue(jsonValue, new TypeReference<>() {});
                             permissions.addAll(rolePermissions);
                         } catch (JsonProcessingException e) {
                             log.error("==> JSON 解析错误: ", e);
                         }
                     });
-                    // 返回此用户所拥有的权限
                     return permissions;
                 }
             }
-
             return null;
         } catch (Exception e) {
             log.error("==> JSON 解析错误: ", e);
         }
-
-
-
-        // 返回此 loginId 拥有的角色列表
-        // todo 从 redis 获取
-        
         return Collections.emptyList();
     }
 
+
+    /**
+     * 获取用户角色列表
+     *
+     * @param loginId
+     * @param loginType
+     * @return
+     */
+    @Override
+    public List<String> getRoleList(Object loginId, String loginType) {
+        try {
+            log.info("## 获取用户角色列表, loginId: {}", loginId);
+
+            String userRolesKey = RedisKeyConstants.buildUserRoleKey(Long.valueOf(loginId.toString()));
+            String useRolesValue = redisTemplate.opsForValue().get(userRolesKey);
+
+            if (StringUtils.isBlank(useRolesValue)) {
+                return null;
+            }
+
+            return objectMapper.readValue(useRolesValue, new TypeReference<>() {});
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 }

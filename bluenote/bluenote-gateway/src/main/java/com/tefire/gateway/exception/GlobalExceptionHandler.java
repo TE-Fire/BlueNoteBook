@@ -1,7 +1,7 @@
-
 package com.tefire.gateway.exception;
 
-import cn.dev33.satoken.exception.SaTokenException;
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tefire.framework.common.response.Response;
 import com.tefire.gateway.enums.ResponseCodeEnum;
@@ -38,7 +38,12 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         // 响参
         Response<?> result;
         // 根据捕获的异常类型，设置不同的响应状态码和响应消息
-        if (ex instanceof SaTokenException) { // Sa-Token 异常
+        if (ex instanceof NotLoginException) { // 未登录异常
+            // 设置 401 状态码
+            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            // 构建响应结果
+            result = Response.fail(ResponseCodeEnum.UNAUTHORIZED.getErrorCode(), ex.getMessage());
+        } else if (ex instanceof NotPermissionException) { // 无权限异常
             // 权限认证失败时，设置 401 状态码
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             // 构建响应结果
@@ -49,7 +54,7 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 
         // 设置响应头的内容类型为 application/json;charset=UTF-8，表示响应体为 JSON 格式
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON_UTF8);
-        // 设置 body 响应体
+        // 设置 body 响应体·
         return response.writeWith(Mono.fromSupplier(() -> { // 使用 Mono.fromSupplier 创建响应体
             DataBufferFactory bufferFactory = response.bufferFactory();
             try {

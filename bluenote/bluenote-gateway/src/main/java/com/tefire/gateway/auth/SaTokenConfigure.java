@@ -3,9 +3,14 @@ package com.tefire.gateway.auth;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import cn.dev33.satoken.context.SaHolder;
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
+import cn.dev33.satoken.exception.NotRoleException;
 import cn.dev33.satoken.reactor.filter.SaReactorFilter;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /*
  * @Author: TE-Fire 3037749727@qq.com
@@ -13,7 +18,9 @@ import cn.dev33.satoken.stp.StpUtil;
  * @Description: 网关配置：在gateway拦截和过滤请求
  */
 @Configuration
+@Slf4j
 public class SaTokenConfigure {
+
     // 注册 Sa-Token全局过滤器
     @Bean
     public SaReactorFilter getSaReactorFilter() {
@@ -22,6 +29,7 @@ public class SaTokenConfigure {
                 .addInclude("/**")    /* 拦截全部path */
                 // 鉴权方法：每次访问进入
                 .setAuth(obj -> {
+                    log.info("==================> SaReactorFilter, Path: {}", SaHolder.getRequest().getRequestPath());
                     // 登录校验
                     SaRouter.match("/**") // 拦截所有路由
                             .notMatch("/auth/user/login") // 排除登录接口
@@ -30,8 +38,9 @@ public class SaTokenConfigure {
                     ;
 
                     // 权限认证 -- 不同模块, 校验不同权限
-                    // SaRouter.match("/auth/user/logout", r -> StpUtil.checkPermission("common_user"));
-                    SaRouter.match("/auth/user/logout", r -> StpUtil.checkPermission("app:note:delete"));
+                    SaRouter.match("/auth/user/logout", r -> StpUtil.checkRole("common_user"));
+                    // SaRouter.match("/auth/user/logout", r -> StpUtil.checkPermission("app:note:delete"));
+                    SaRouter.match("/auth/user/logout", r -> StpUtil.checkPermission("app:note:publish"));
 
                     // SaRouter.match("/auth/user/logout", r -> StpUtil.checkRole("admin"));
                     // SaRouter.match("/admin/**", r -> StpUtil.checkPermission("admin"));
@@ -40,10 +49,17 @@ public class SaTokenConfigure {
 
                     // 更多匹配 ...  */
                 })
-                // 异常处理方法：每次setAuth函数出现异常时进入
-                // .setError(e -> {
-                //     return SaResult.error(e.getMessage());
-                // })
+               .setError(e -> {
+                    // return SaResult.error(e.getMessage());
+                    // 手动抛出异常，抛给全局异常处理器
+                    if (e instanceof NotLoginException) { // 未登录异常
+                        throw new NotLoginException(e.getMessage(), null, null);
+                    } else if (e instanceof NotPermissionException || e instanceof NotRoleException) { // 权限不足，或不具备角色，统一抛出权限不足异常
+                        throw new NotPermissionException(e.getMessage());
+                    } else { // 其他异常，则抛出一个运行时异常
+                        throw new RuntimeException(e.getMessage());
+                    }
+                })
                 ;
     }
 }
