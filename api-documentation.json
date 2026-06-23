@@ -15,9 +15,8 @@
     "/user/logout": {
       "post": {
         "summary": "用户登出",
-        "description": "用户登出接口，需要携带有效的登录 Token",
+        "description": "用户登出接口",
         "tags": ["用户认证"],
-        "security": [{"BearerAuth": []}],
         "responses": {
           "200": {
             "description": "成功",
