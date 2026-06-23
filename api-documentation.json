@@ -12,6 +12,44 @@
     }
   ],
   "paths": {
+    "/user/logout": {
+      "post": {
+        "summary": "用户登出",
+        "description": "用户登出接口，需要携带有效的登录 Token",
+        "tags": ["用户认证"],
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                },
+                "examples": {
+                  "成功": {
+                    "value": {
+                      "success": true,
+                      "message": "登出成功",
+                      "errorCode": null,
+                      "data": null
+                    }
+                  },
+                  "失败": {
+                    "value": {
+                      "success": false,
+                      "message": "用户未登录",
+                      "errorCode": "AUTH-30001",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/user/login": {
       "post": {
         "summary": "用户登录/注册",

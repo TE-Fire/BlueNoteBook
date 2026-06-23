@@ -17,7 +17,48 @@
 
 ## 接口列表
 
-### 1. 用户登录/注册
+### 1. 用户登出
+
+**接口地址**: `POST /user/logout`
+
+**功能描述**: 用户登出接口，需要携带有效的登录 Token
+
+**认证方式**: 需要在请求头中携带 `Authorization: Bearer <token>`
+
+**成功响应**:
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| success | boolean | 是否成功 |
+| message | String | 响应消息 |
+| errorCode | String | 异常码 |
+| data | Object | 响应数据 |
+
+**成功响应示例**:
+
+```json
+{
+    "success": true,
+    "message": "登出成功",
+    "errorCode": null,
+    "data": null
+}
+```
+
+**失败响应示例**:
+
+```json
+{
+    "success": false,
+    "message": "用户未登录",
+    "errorCode": "AUTH-30001",
+    "data": null
+}
+```
+
+---
+
+### 2. 用户登录/注册
 
 **接口地址**: `POST /user/login`
 
@@ -137,6 +178,7 @@
 | AUTH-10001 | 参数错误 |
 | AUTH-20001 | 验证码错误 |
 | AUTH-20002 | 发送短信太频繁 |
+| AUTH-30001 | 用户未登录 |
 
 ---
 
