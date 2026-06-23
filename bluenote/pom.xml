@@ -77,6 +77,13 @@
                 <version>${revision}</version>
             </dependency>
 
+            <!--  上下文组件  -->
+            <dependency>
+                <groupId>com.tefire</groupId>
+                <artifactId>bluenote-spring-boot-starter-biz-context</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
