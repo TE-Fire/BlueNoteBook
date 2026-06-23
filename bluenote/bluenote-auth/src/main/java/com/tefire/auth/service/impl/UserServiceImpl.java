@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -53,6 +54,9 @@ public class UserServiceImpl implements UserService{
 
     @Resource
     private RoleDOMapper roleDOMapper;
+
+    @Resource(name = "taskExecutor")
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     
 
     @Override
@@ -108,6 +112,12 @@ public class UserServiceImpl implements UserService{
         Long userId = LoginUserContextHolder.getUserId();
 
         log.info("==> 用户退出登录, userId: {}", userId);
+
+        // 测试ThreadLocal的局限性
+        threadPoolTaskExecutor.submit(() -> {
+            Long userId2 = LoginUserContextHolder.getUserId();
+            log.info("==> 异步线程中获取 userId: {}", userId2);
+        });
         // 退出登录 (指定用户 ID)
         StpUtil.logout(userId);
         

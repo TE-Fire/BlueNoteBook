@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.alibaba.ttl.TransmittableThreadLocal;
 import com.tefire.framework.common.constant.GlobalConstants;
 
 /*
@@ -14,7 +15,7 @@ import com.tefire.framework.common.constant.GlobalConstants;
 public class LoginUserContextHolder {
     
     private static final ThreadLocal<Map<String, Object>> LOGIN_USER_CONTEXT_THREAD_LOCAL
-        = ThreadLocal.withInitial(HashMap::new);
+        = TransmittableThreadLocal.withInitial(HashMap::new);
 
 
     /**
