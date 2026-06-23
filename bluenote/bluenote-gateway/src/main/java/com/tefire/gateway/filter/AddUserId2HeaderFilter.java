@@ -5,6 +5,8 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
+import com.tefire.framework.common.constant.GlobalConstants;
+
 import cn.dev33.satoken.stp.StpUtil;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -18,11 +20,6 @@ import reactor.core.publisher.Mono;
 @Component
 public class AddUserId2HeaderFilter implements GlobalFilter {
     
-     /**
-     * 请求头中，用户 ID 的键
-     */
-    private static final String HEADER_USER_ID = "userId";
-
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         log.info("==================> TokenConvertFilter");
@@ -39,7 +36,7 @@ public class AddUserId2HeaderFilter implements GlobalFilter {
 
         Long finalUserId = userId;
       ServerWebExchange newExchange = exchange.mutate()
-                  .request(builder -> builder.header(HEADER_USER_ID, String.valueOf(finalUserId))) // 将用户id设置到请求头
+                  .request(builder -> builder.header(GlobalConstants.USER_ID, String.valueOf(finalUserId))) // 将用户id设置到请求头
                   .build();
 		// 将请求传递给过滤器链中的下一个过滤器进行处理。没有对请求进行任何修改。
         return chain.filter(newExchange);
