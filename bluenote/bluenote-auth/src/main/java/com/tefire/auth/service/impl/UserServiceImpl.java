@@ -21,6 +21,7 @@ import com.tefire.auth.domain.mapper.UserDOMapper;
 import com.tefire.auth.domain.mapper.UserRoleDOMapper;
 import com.tefire.auth.enums.LoginTypeEnum;
 import com.tefire.auth.enums.ResponseCodeEnum;
+import com.tefire.auth.filter.LoginUserContextHolder;
 import com.tefire.auth.model.vo.user.UserLoginReqVO;
 import com.tefire.auth.service.UserService;
 import com.tefire.framework.common.enums.DeletedEnum;
@@ -103,7 +104,10 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public Response<?> logout(Long userId) {
+    public Response<?> logout() {
+        Long userId = LoginUserContextHolder.getUserId();
+
+        log.info("==> 用户退出登录, userId: {}", userId);
         // 退出登录 (指定用户 ID)
         StpUtil.logout(userId);
         

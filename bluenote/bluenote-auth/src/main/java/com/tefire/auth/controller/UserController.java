@@ -3,7 +3,6 @@ package com.tefire.auth.controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,6 +13,7 @@ import com.tefire.framework.common.response.Response;
 
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+
 /*
  * @Author: TE-Fire 3037749727@qq.com
  * @Date: 2026-06-20 14:23:56
@@ -35,10 +35,9 @@ public class UserController {
 
     @PostMapping("/logout")
     @ApiOperationLog(description = "账号登出")
-    public Response<?> logout(@RequestHeader("userId") String userId) {
+    public Response<?> logout() {
     
-        log.info("==> 网关透传过来的用户 ID: {}", userId);
-        
-        return userService.logout(Long.valueOf(userId));
+
+        return userService.logout();
     }
 }
