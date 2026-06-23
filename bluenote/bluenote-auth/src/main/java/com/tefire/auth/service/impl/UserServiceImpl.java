@@ -102,6 +102,14 @@ public class UserServiceImpl implements UserService{
         return Response.success(tokenInfo.tokenValue);
     }
 
+    @Override
+    public Response<?> logout(Long userId) {
+        // 退出登录 (指定用户 ID)
+        StpUtil.logout(userId);
+        
+        return Response.success();
+    }
+
     /**
      * 系统自动注册用户
      * @param phone
