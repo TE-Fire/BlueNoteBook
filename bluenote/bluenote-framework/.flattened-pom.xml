@@ -17,5 +17,6 @@
     <module>bluenote-common</module>
     <module>bluenote-spring-boot-starter-biz-operationlog</module>
     <module>bluenote-spring-boot-starter-jackson</module>
+    <module>bluenote-spring-boot-starter-biz-context</module>
   </modules>
 </project>

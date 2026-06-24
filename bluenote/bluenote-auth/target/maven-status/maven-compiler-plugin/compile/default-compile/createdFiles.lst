@@ -2,11 +2,13 @@ com\tefire\auth\model\vo\user\UserLoginReqVO$UserLoginReqVOBuilder.class
 com\tefire\auth\model\vo\user\UserLoginReqVO.class
 com\tefire\auth\domain\dataobject\PermissionDO$PermissionDOBuilder.class
 com\tefire\auth\enums\ResponseCodeEnum.class
+com\tefire\auth\config\PasswordEncoderConfig.class
 com\tefire\auth\domain\dataobject\UserRoleDO$UserRoleDOBuilder.class
 com\tefire\auth\domain\dataobject\UserDO$UserDOBuilder.class
 com\tefire\auth\domain\dataobject\UserRoleDO.class
 com\tefire\auth\alarm\impl\SmsAlarmHelper.class
 com\tefire\Main.class
+com\tefire\auth\config\ThreadPoolConfig.class
 com\tefire\auth\exception\GlobalExceptionHandler.class
 com\tefire\auth\sms\AliyunSmsHelper.class
 com\tefire\auth\runner\PushRolePermissions2RedisRunner.class
@@ -32,10 +34,12 @@ com\tefire\auth\domain\mapper\RoleDOMapper.class
 com\tefire\auth\controller\VerificationCodeController.class
 com\tefire\auth\domain\mapper\PermissionDOMapper.class
 com\tefire\auth\alarm\AlarmInterface.class
+com\tefire\auth\model\vo\user\UpdatePasswordReqVO.class
 com\tefire\auth\constant\RedisKeyConstants.class
 com\tefire\auth\domain\mapper\UserRoleDOMapper.class
 com\tefire\auth\service\impl\UserServiceImpl.class
 com\tefire\auth\domain\dataobject\UserDO.class
 com\tefire\auth\service\UserService.class
+com\tefire\auth\model\vo\user\UpdatePasswordReqVO$UpdatePasswordReqVOBuilder.class
 com\tefire\auth\service\VerificationCodeService.class
 com\tefire\auth\model\SendVerificationCodeReqVO.class
