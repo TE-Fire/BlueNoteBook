@@ -3,7 +3,7 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml" />
 
     <!-- 应用名称 -->
-    <property scope="context" name="appName" value="auth"/>
+    <property scope="context" name="appName" value="oss"/>
     <!-- 自定义日志输出路径 -->
     <property name="LOG_DIR" value="D:/BlueNoteBook/logs"/>
     <!-- 动态获取当前日期 -->

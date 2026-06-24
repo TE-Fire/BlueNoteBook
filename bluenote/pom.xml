@@ -21,6 +21,7 @@
         <module>bluenote-auth</module>
         <module>bluenote-framework</module>
         <module>bluenote-gateway</module>
+        <module>bluenote-oss</module>
     </modules>
 
     <properties>
