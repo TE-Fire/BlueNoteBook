@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tefire.auth.model.vo.user.UpdatePasswordReqVO;
 import com.tefire.auth.model.vo.user.UserLoginReqVO;
 import com.tefire.auth.service.UserService;
 import com.tefire.framework.biz.operationlog.aspect.ApiOperationLog;
@@ -36,8 +37,13 @@ public class UserController {
     @PostMapping("/logout")
     @ApiOperationLog(description = "账号登出")
     public Response<?> logout() {
-    
-
         return userService.logout();
+    }
+
+
+    @PostMapping("/password/update")
+    @ApiOperationLog(description = "修改密码")
+    public Response<?> updatePassword(@Validated @RequestBody UpdatePasswordReqVO updatePasswordReqVO) {
+        return userService.updatePassword(updatePasswordReqVO);
     }
 }

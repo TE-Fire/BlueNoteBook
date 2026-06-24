@@ -8,6 +8,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -22,6 +23,7 @@ import com.tefire.auth.domain.mapper.UserDOMapper;
 import com.tefire.auth.domain.mapper.UserRoleDOMapper;
 import com.tefire.auth.enums.LoginTypeEnum;
 import com.tefire.auth.enums.ResponseCodeEnum;
+import com.tefire.auth.model.vo.user.UpdatePasswordReqVO;
 import com.tefire.auth.model.vo.user.UserLoginReqVO;
 import com.tefire.auth.service.UserService;
 import com.tefire.framework.biz.context.holder.LoginUserContextHolder;
@@ -58,6 +60,8 @@ public class UserServiceImpl implements UserService{
     @Resource(name = "taskExecutor")
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     
+    @Resource
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public Response<String> loginAndRegister(UserLoginReqVO userLoginReqVO) {
@@ -176,6 +180,24 @@ public class UserServiceImpl implements UserService{
                 return null;
             }
         });
-        
+    }
+
+    @Override
+    public Response<?> updatePassword(UpdatePasswordReqVO updatePasswordReqVO) {
+        String newPassword = updatePasswordReqVO.getNewPassword();
+        // 密码加密
+        String encodePassword = passwordEncoder.encode(newPassword);
+
+        Long userId = LoginUserContextHolder.getUserId();
+
+        UserDO userDO = UserDO.builder()
+                    .id(userId)
+                    .password(encodePassword)
+                    .updateTime(LocalDateTime.now())
+                    .build();
+
+        userDOMapper.updateByPrimaryKeySelective(userDO);
+
+        return Response.success();
     }
 }
