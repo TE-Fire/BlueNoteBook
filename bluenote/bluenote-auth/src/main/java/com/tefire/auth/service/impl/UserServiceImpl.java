@@ -99,7 +99,22 @@ public class UserServiceImpl implements UserService{
                 }
                 break;
             case PASSWORD:
-                // todo:
+                String password = userLoginReqVO.getPassword();
+
+                UserDO userDO2 = userDOMapper.selectByPhone(phone);
+                if (Objects.isNull(userDO2)) {
+                    throw new BizException(ResponseCodeEnum.USER_NOT_FOUND);
+                }
+
+                String encodePassword = userDO2.getPassword();
+
+                boolean isPasswordCorrect = passwordEncoder.matches(password, encodePassword);
+
+                if (!isPasswordCorrect) {
+                    throw new BizException(ResponseCodeEnum.PHONE_OR_PASSWORD_ERROR);
+                }
+
+                userId = userDO2.getId();
             default:
                 break;
         }
