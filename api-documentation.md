@@ -17,7 +17,31 @@
 
 ## 接口列表
 
-### 1. 上传文件
+### 1. 用户信息修改
+
+**接口地址**: `POST /user/update`
+
+**功能描述**: 用户信息修改接口
+
+**请求体**:
+
+| 字段名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| nickname | String | 否 | 昵称 |
+| avatar | File | 否 | 头像文件（multipart/form-data） |
+
+**成功响应**:
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| success | boolean | 是否成功 |
+| message | String | 响应消息 |
+| errorCode | String | 异常码 |
+| data | Object | 响应数据 |
+
+---
+
+### 2. 上传文件
 
 **接口地址**: `POST /file/upload`
 
@@ -305,4 +329,4 @@
 ## 认证方式
 
 - **Token 认证**: 登录成功后返回的 Token 需要放在请求头 `Authorization: Bearer <token>` 中
-- **无认证接口**: `/file/upload`、`/user/login`、`/user/logout`、`/user/password/update` 和 `/verification/code/send` 无需认证
+- **无认证接口**: `/file/upload`、`/user/login`、`/user/logout`、`/user/password/update`、`/user/update` 和 `/verification/code/send` 无需认证

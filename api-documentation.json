@@ -12,6 +12,35 @@
     }
   ],
   "paths": {
+    "/user/update": {
+      "post": {
+        "summary": "用户信息修改",
+        "description": "用户信息修改接口",
+        "tags": ["用户服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserInfoReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/file/upload": {
       "post": {
         "summary": "上传文件",
@@ -283,6 +312,21 @@
   },
   "components": {
     "schemas": {
+      "UpdateUserInfoReqVO": {
+        "type": "object",
+        "description": "用户信息修改请求入参",
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "description": "昵称"
+          },
+          "avatar": {
+            "type": "string",
+            "format": "binary",
+            "description": "头像文件"
+          }
+        }
+      },
       "UploadFileReqVO": {
         "type": "object",
         "description": "文件上传请求入参",
@@ -400,6 +444,10 @@
     }
   },
   "tags": [
+    {
+      "name": "用户服务",
+      "description": "用户信息相关接口"
+    },
     {
       "name": "文件服务",
       "description": "文件上传、下载相关接口"
