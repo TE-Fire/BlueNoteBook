@@ -17,7 +17,56 @@
 
 ## 接口列表
 
-### 1. 修改密码
+### 1. 上传文件
+
+**接口地址**: `POST /file/upload`
+
+**功能描述**: 文件上传接口，支持上传图片、文档等文件
+
+**请求体**:
+
+| 字段名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| file | File | 是 | 上传的文件（multipart/form-data） |
+
+**成功响应**:
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| success | boolean | 是否成功 |
+| message | String | 响应消息 |
+| errorCode | String | 异常码 |
+| data | Object | 响应数据 |
+
+**成功响应示例**:
+
+```json
+{
+    "success": true,
+    "message": "文件上传成功",
+    "errorCode": null,
+    "data": {
+        "url": "https://oss.example.com/2026/06/25/test.jpg",
+        "fileName": "test.jpg",
+        "fileSize": 102400
+    }
+}
+```
+
+**失败响应示例**:
+
+```json
+{
+    "success": false,
+    "message": "文件不能为空",
+    "errorCode": "OSS-10001",
+    "data": null
+}
+```
+
+---
+
+### 2. 修改密码
 
 **接口地址**: `POST /user/password/update`
 
@@ -256,4 +305,4 @@
 ## 认证方式
 
 - **Token 认证**: 登录成功后返回的 Token 需要放在请求头 `Authorization: Bearer <token>` 中
-- **无认证接口**: `/user/login`、`/user/logout`、`/user/password/update` 和 `/verification/code/send` 无需认证
+- **无认证接口**: `/file/upload`、`/user/login`、`/user/logout`、`/user/password/update` 和 `/verification/code/send` 无需认证

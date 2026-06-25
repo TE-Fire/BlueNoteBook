@@ -12,6 +12,64 @@
     }
   ],
   "paths": {
+    "/file/upload": {
+      "post": {
+        "summary": "上传文件",
+        "description": "文件上传接口，支持上传图片、文档等文件",
+        "tags": ["文件服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadFileReqVO"
+              },
+              "examples": {
+                "上传图片": {
+                  "value": {
+                    "file": "<file>"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                },
+                "examples": {
+                  "成功": {
+                    "value": {
+                      "success": true,
+                      "message": "文件上传成功",
+                      "errorCode": null,
+                      "data": {
+                        "url": "https://oss.example.com/2026/06/25/test.jpg",
+                        "fileName": "test.jpg",
+                        "fileSize": 102400
+                      }
+                    }
+                  },
+                  "失败": {
+                    "value": {
+                      "success": false,
+                      "message": "文件不能为空",
+                      "errorCode": "OSS-10001",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/user/password/update": {
       "post": {
         "summary": "修改密码",
@@ -225,6 +283,18 @@
   },
   "components": {
     "schemas": {
+      "UploadFileReqVO": {
+        "type": "object",
+        "description": "文件上传请求入参",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "上传的文件"
+          }
+        },
+        "required": ["file"]
+      },
       "UpdatePasswordReqVO": {
         "type": "object",
         "description": "修改密码请求入参",
@@ -330,6 +400,10 @@
     }
   },
   "tags": [
+    {
+      "name": "文件服务",
+      "description": "文件上传、下载相关接口"
+    },
     {
       "name": "用户认证",
       "description": "用户登录、注册相关接口"
