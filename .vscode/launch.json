@@ -37,6 +37,16 @@
             "projectName": "bluenote-oss-biz",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
-        }
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-Main<bluenote-user-biz>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tefire.BlueNoteUserBizApplication",
+            "projectName": "bluenote-user-biz",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
     ]
 }
