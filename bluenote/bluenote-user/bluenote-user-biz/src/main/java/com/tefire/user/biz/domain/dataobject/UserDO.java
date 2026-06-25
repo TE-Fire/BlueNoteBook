@@ -1,6 +1,7 @@
 package com.tefire.user.biz.domain.dataobject;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,21 +23,21 @@ public class UserDO {
 
     private String avatar;
 
-    private Date birthday;
+    private LocalDate birthday;
 
     private String backgroundImg;
 
     private String phone;
 
-    private Byte sex;
+    private Integer sex;
 
-    private Byte status;
+    private Integer status;
 
     private String introduction;
 
-    private Date createTime;
+    private LocalDateTime createTime;
 
-    private Date updateTime;
+    private LocalDateTime updateTime;
 
     private Boolean isDeleted;
 
