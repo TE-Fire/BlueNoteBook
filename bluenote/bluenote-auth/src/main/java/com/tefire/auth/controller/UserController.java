@@ -3,7 +3,6 @@ package com.tefire.auth.controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tefire.auth.model.vo.user.UpdatePasswordReqVO;
@@ -21,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
  * @Description: 登录注册
  */
 @RestController
-@RequestMapping("/user")
 @Slf4j
 public class UserController {
     
