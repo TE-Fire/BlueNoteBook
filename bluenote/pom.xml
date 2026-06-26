@@ -212,6 +212,13 @@
                 <artifactId>minio</artifactId>
                 <version>${minio.version}</version>
             </dependency>
+
+            <!-- 调用oss服务api -->
+            <dependency>
+                <groupId>com.tefire</groupId>
+                <artifactId>bluenote-oss-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
              
         </dependencies>
     </dependencyManagement>

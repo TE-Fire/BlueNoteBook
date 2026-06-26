@@ -12,6 +12,7 @@ import com.google.common.base.Preconditions;
 import com.tefire.framework.biz.context.holder.LoginUserContextHolder;
 import com.tefire.framework.common.response.Response;
 import com.tefire.framework.common.util.ParamUtils;
+import com.tefire.oss.api.FileFeignApi;
 import com.tefire.user.biz.domain.dataobject.UserDO;
 import com.tefire.user.biz.domain.mapper.UserDOMapper;
 import com.tefire.user.biz.enums.ResponseCodeEnum;
@@ -26,6 +27,9 @@ public class UserServiceImpl implements UserService {
     
     @Resource
     private UserDOMapper userDOMapper;
+
+    @Resource
+    private FileFeignApi fileFeignApi;
 
     @SuppressWarnings("null")
     @Override
@@ -43,6 +47,7 @@ public class UserServiceImpl implements UserService {
 
         if (Objects.nonNull(avatar)) {
             // todo: 调用对象存储服务上传文件
+            fileFeignApi.test();
         }
 
         // 昵称

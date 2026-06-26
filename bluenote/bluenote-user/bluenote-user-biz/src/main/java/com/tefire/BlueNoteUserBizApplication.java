@@ -1,7 +1,9 @@
 package com.tefire;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /*
  * @Author: TE-Fire 3037749727@qq.com
@@ -9,6 +11,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @Description: 用户服务启动类
  */
 @SpringBootApplication
+@MapperScan("com.tefire.user.biz.domain.mapper")
+@EnableFeignClients(basePackages = "com.tefire.oss.api")
 public class BlueNoteUserBizApplication {
      public static void main(String[] args) {
         SpringApplication.run(BlueNoteUserBizApplication.class, args);

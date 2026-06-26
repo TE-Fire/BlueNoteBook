@@ -81,6 +81,11 @@
             <groupId>com.tefire</groupId>
             <artifactId>bluenote-spring-boot-starter-biz-context</artifactId>
         </dependency>
+
+         <dependency>
+            <groupId>com.tefire</groupId>
+            <artifactId>bluenote-oss-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
