@@ -1,1 +1,2 @@
 com.tefire.framework.biz.context.config.ContextAutoConfiguration
+com.tefire.framework.biz.context.config.FeignContextAutoConfiguration
