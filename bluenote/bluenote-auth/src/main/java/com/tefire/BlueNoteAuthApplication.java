@@ -3,11 +3,13 @@ package com.tefire;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @MapperScan("com.tefire.auth.domain.mapper")
-public class Main {
+@EnableFeignClients("com.tefire.user.api")
+public class BlueNoteAuthApplication {
     public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
+        SpringApplication.run(BlueNoteAuthApplication.class, args);
     }
 }

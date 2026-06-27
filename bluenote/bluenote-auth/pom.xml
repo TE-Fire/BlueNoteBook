@@ -129,6 +129,12 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
+
+        <!-- 调用user服务feign -->
+        <dependency>
+            <groupId>com.tefire</groupId>
+            <artifactId>bluenote-user-api</artifactId>
+        </dependency>
         
     </dependencies>
 

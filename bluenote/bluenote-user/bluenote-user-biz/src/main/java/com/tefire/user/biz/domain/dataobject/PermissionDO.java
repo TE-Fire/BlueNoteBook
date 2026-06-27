@@ -1,4 +1,4 @@
-package com.tefire.auth.domain.dataobject;
+package com.tefire.user.biz.domain.dataobject;
 
 import java.time.LocalDateTime;
 
@@ -6,14 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-/*
- * @Author: TE-Fire 3037749727@qq.com
- * @Date: 2026-06-20 14:40:57
- * @Description: 权限表实体类
- */
+
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class PermissionDO {
     private Long id;

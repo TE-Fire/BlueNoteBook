@@ -220,12 +220,24 @@
                 <artifactId>bluenote-oss-api</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <!-- 调用user服务feign -->
+             <dependency>
+                <groupId>com.tefire</groupId>
+                <artifactId>bluenote-user-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
 
              <!-- Feign 表单提交 -->
             <dependency>
                 <groupId>io.github.openfeign.form</groupId>
                 <artifactId>feign-form</artifactId>
                 <version>${feign-form.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.tefire</groupId>
+                <artifactId>bluenote-user-api</artifactId>
+                <version>${revision}</version>
             </dependency>
 
         </dependencies>

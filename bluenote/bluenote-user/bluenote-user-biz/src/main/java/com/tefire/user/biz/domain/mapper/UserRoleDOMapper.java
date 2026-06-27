@@ -1,6 +1,6 @@
-package com.tefire.auth.domain.mapper;
+package com.tefire.user.biz.domain.mapper;
 
-import com.tefire.auth.domain.dataobject.UserRoleDO;
+import com.tefire.user.biz.domain.dataobject.UserRoleDO;
 
 public interface UserRoleDOMapper {
     int deleteByPrimaryKey(Long id);

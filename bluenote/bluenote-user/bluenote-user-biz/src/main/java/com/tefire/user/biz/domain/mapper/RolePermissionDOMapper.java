@@ -1,10 +1,15 @@
-package com.tefire.auth.domain.mapper;
+/*
+ * @Author: TE-Fire 3037749727@qq.com
+ * @Date: 2026-06-26 21:59:01
+ * @Description: 
+ */
+package com.tefire.user.biz.domain.mapper;
 
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
-import com.tefire.auth.domain.dataobject.RolePermissionDO;
+import com.tefire.user.biz.domain.dataobject.RolePermissionDO;
 
 public interface RolePermissionDOMapper {
     int deleteByPrimaryKey(Long id);
@@ -19,7 +24,7 @@ public interface RolePermissionDOMapper {
 
     int updateByPrimaryKey(RolePermissionDO record);
 
-    /**
+     /**
      * 根据角色 ID 集合批量查询
      *
      * @param roleIds

@@ -1,4 +1,4 @@
-package com.tefire.auth.runner;
+package com.tefire.user.biz.runner;
 
 import java.util.List;
 import java.util.Map;
@@ -12,14 +12,14 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.tefire.auth.constant.RedisKeyConstants;
-import com.tefire.auth.domain.dataobject.PermissionDO;
-import com.tefire.auth.domain.dataobject.RoleDO;
-import com.tefire.auth.domain.dataobject.RolePermissionDO;
-import com.tefire.auth.domain.mapper.PermissionDOMapper;
-import com.tefire.auth.domain.mapper.RoleDOMapper;
-import com.tefire.auth.domain.mapper.RolePermissionDOMapper;
 import com.tefire.framework.common.util.JsonUtils;
+import com.tefire.user.biz.constant.RedisKeyConstants;
+import com.tefire.user.biz.domain.dataobject.PermissionDO;
+import com.tefire.user.biz.domain.dataobject.RoleDO;
+import com.tefire.user.biz.domain.dataobject.RolePermissionDO;
+import com.tefire.user.biz.domain.mapper.PermissionDOMapper;
+import com.tefire.user.biz.domain.mapper.RoleDOMapper;
+import com.tefire.user.biz.domain.mapper.RolePermissionDOMapper;
 
 import cn.hutool.core.collection.CollUtil;
 import jakarta.annotation.Resource;

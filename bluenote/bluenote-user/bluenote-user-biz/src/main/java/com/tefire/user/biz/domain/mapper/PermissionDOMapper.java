@@ -1,8 +1,13 @@
-package com.tefire.auth.domain.mapper;
+/*
+ * @Author: TE-Fire 3037749727@qq.com
+ * @Date: 2026-06-26 21:59:01
+ * @Description: 
+ */
+package com.tefire.user.biz.domain.mapper;
 
 import java.util.List;
 
-import com.tefire.auth.domain.dataobject.PermissionDO;
+import com.tefire.user.biz.domain.dataobject.PermissionDO;
 
 public interface PermissionDOMapper {
     int deleteByPrimaryKey(Long id);
@@ -18,7 +23,7 @@ public interface PermissionDOMapper {
     int updateByPrimaryKey(PermissionDO record);
 
     /**
-     * 查询 APP 端所有被启用的权限
+     * 查询所有被启用的权限
      *
      * @return
      */

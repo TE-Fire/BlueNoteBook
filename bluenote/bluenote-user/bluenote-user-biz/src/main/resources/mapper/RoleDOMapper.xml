@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.tefire.auth.domain.mapper.RoleDOMapper">
-  <resultMap id="BaseResultMap" type="com.tefire.auth.domain.dataobject.RoleDO">
+<mapper namespace="com.tefire.user.biz.domain.mapper.RoleDOMapper">
+  <resultMap id="BaseResultMap" type="com.tefire.user.biz.domain.dataobject.RoleDO">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="role_name" jdbcType="VARCHAR" property="roleName" />
     <result column="role_key" jdbcType="VARCHAR" property="roleKey" />
@@ -25,7 +25,7 @@
     delete from t_role
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.tefire.auth.domain.dataobject.RoleDO">
+  <insert id="insert" parameterType="com.tefire.user.biz.domain.dataobject.RoleDO">
     insert into t_role (id, role_name, role_key, 
       `status`, sort, remark, 
       create_time, update_time, is_deleted
@@ -35,7 +35,7 @@
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDeleted,jdbcType=BIT}
       )
   </insert>
-  <insert id="insertSelective" parameterType="com.tefire.auth.domain.dataobject.RoleDO">
+  <insert id="insertSelective" parameterType="com.tefire.user.biz.domain.dataobject.RoleDO">
     insert into t_role
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -96,7 +96,7 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.tefire.auth.domain.dataobject.RoleDO">
+  <update id="updateByPrimaryKeySelective" parameterType="com.tefire.user.biz.domain.dataobject.RoleDO">
     update t_role
     <set>
       <if test="roleName != null">
@@ -126,7 +126,7 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.tefire.auth.domain.dataobject.RoleDO">
+  <update id="updateByPrimaryKey" parameterType="com.tefire.user.biz.domain.dataobject.RoleDO">
     update t_role
     set role_name = #{roleName,jdbcType=VARCHAR},
       role_key = #{roleKey,jdbcType=VARCHAR},
@@ -141,7 +141,7 @@
 
   <!-- selectEnabledList --> 
 
-  <select id="selectEnabledList" resultMap="BaseResultMap">
+ <select id="selectEnabledList" resultMap="BaseResultMap">
     select id, role_key, role_name
     from t_role
     where status = 0 and is_deleted = 0

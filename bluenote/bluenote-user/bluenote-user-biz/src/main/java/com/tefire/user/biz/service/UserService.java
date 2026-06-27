@@ -2,6 +2,7 @@ package com.tefire.user.biz.service;
 
 import com.tefire.framework.common.response.Response;
 import com.tefire.user.biz.model.vo.UpdateUserInfoReqVO;
+import com.tefire.user.dto.req.RegisterUserReqDTO;
 
 /*
  * @Author: TE-Fire 3037749727@qq.com
@@ -16,4 +17,12 @@ public interface UserService {
      * @return
      */
     Response<?> updateUserInfo(UpdateUserInfoReqVO updateUserInfoReqVO);
+
+     /**
+     * 用户注册
+     *
+     * @param registerUserReqDTO
+     * @return
+     */
+    Response<Long> register(RegisterUserReqDTO registerUserReqDTO);
 }
