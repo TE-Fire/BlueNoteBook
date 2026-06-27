@@ -12,7 +12,7 @@
             "name": "Spring Boot-Main<bluenote-auth>",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "mainClass": "com.tefire.Main",
+            "mainClass": "com.tefire.BlueNoteAuthApplication",
             "projectName": "bluenote-auth",
             "args": "",
             "envFile": "${workspaceFolder}/.env",
