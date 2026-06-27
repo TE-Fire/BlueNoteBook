@@ -11,7 +11,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.base.Preconditions;
 import com.tefire.auth.constant.RedisKeyConstants;
-import com.tefire.auth.domain.mapper.UserDOMapper;
 import com.tefire.auth.enums.LoginTypeEnum;
 import com.tefire.auth.enums.ResponseCodeEnum;
 import com.tefire.auth.model.vo.user.UpdatePasswordReqVO;
@@ -32,9 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthServiceImpl implements AuthService{
     
-    @Resource
-    private UserDOMapper userDOMapper;
-
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
