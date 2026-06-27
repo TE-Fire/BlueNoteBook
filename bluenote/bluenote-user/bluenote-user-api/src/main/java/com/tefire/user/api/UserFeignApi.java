@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.tefire.framework.common.response.Response;
 import com.tefire.user.constant.ApiConstants;
+import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
+import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 /*
  * @Author: TE-Fire 3037749727@qq.com
@@ -26,4 +28,14 @@ public interface UserFeignApi {
      */
     @PostMapping(value = PREFIX + "/register")
     Response<Long> registerUser(@RequestBody RegisterUserReqDTO registerUserReqDTO);
+
+    
+    /**
+     * 根据手机号查询用户信息
+     *
+     * @param findUserByPhoneReqDTO
+     * @return
+     */
+    @PostMapping(value = PREFIX + "/findByPhone")
+    Response<FindUserByPhoneRspDTO> findByPhone(@RequestBody FindUserByPhoneReqDTO findUserByPhoneReqDTO);
 }

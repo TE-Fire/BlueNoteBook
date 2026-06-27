@@ -23,6 +23,7 @@ import com.tefire.auth.service.UserService;
 import com.tefire.framework.biz.context.holder.LoginUserContextHolder;
 import com.tefire.framework.common.exception.BizException;
 import com.tefire.framework.common.response.Response;
+import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
@@ -86,12 +87,13 @@ public class UserServiceImpl implements UserService{
             case PASSWORD:
                 String password = userLoginReqVO.getPassword();
 
-                UserDO userDO2 = userDOMapper.selectByPhone(phone);
-                if (Objects.isNull(userDO2)) {
+                // RPC: 调用用户服务，通过手机号查询用户
+                FindUserByPhoneRspDTO findUserByPhoneRspDTO = userRpcService.findUserByPhone(phone);
+                if (Objects.isNull(findUserByPhoneRspDTO)) {
                     throw new BizException(ResponseCodeEnum.USER_NOT_FOUND);
                 }
 
-                String encodePassword = userDO2.getPassword();
+                String encodePassword = findUserByPhoneRspDTO.getPassword();
 
                 boolean isPasswordCorrect = passwordEncoder.matches(password, encodePassword);
 
@@ -99,7 +101,7 @@ public class UserServiceImpl implements UserService{
                     throw new BizException(ResponseCodeEnum.PHONE_OR_PASSWORD_ERROR);
                 }
 
-                userId = userDO2.getId();
+                userId = findUserByPhoneRspDTO.getId();
             default:
                 break;
         }

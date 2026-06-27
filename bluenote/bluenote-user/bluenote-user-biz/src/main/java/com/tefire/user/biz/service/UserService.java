@@ -2,7 +2,9 @@ package com.tefire.user.biz.service;
 
 import com.tefire.framework.common.response.Response;
 import com.tefire.user.biz.model.vo.UpdateUserInfoReqVO;
+import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
+import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 /*
  * @Author: TE-Fire 3037749727@qq.com
@@ -25,4 +27,12 @@ public interface UserService {
      * @return
      */
     Response<Long> register(RegisterUserReqDTO registerUserReqDTO);
+
+     /**
+     * 根据手机号查询用户信息
+     *
+     * @param findUserByPhoneReqDTO
+     * @return
+     */
+    Response<FindUserByPhoneRspDTO> findByPhone(FindUserByPhoneReqDTO findUserByPhoneReqDTO);
 }

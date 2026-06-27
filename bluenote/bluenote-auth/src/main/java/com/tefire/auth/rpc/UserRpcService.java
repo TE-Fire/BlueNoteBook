@@ -4,7 +4,9 @@ import org.springframework.stereotype.Component;
 
 import com.tefire.framework.common.response.Response;
 import com.tefire.user.api.UserFeignApi;
+import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
+import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 import jakarta.annotation.Resource;
 
@@ -24,6 +26,25 @@ public class UserRpcService {
         registerUserReqDTO.setPhone(phone);
 
         Response<Long> response = userFeignApi.registerUser(registerUserReqDTO);
+
+        if (!response.isSuccess()) {
+            return null;
+        }
+
+        return response.getData();
+    }
+
+     /**
+     * 根据手机号查询用户信息
+     *
+     * @param phone
+     * @return
+     */
+    public FindUserByPhoneRspDTO findUserByPhone(String phone) {
+        FindUserByPhoneReqDTO findUserByPhoneReqDTO = new FindUserByPhoneReqDTO();
+        findUserByPhoneReqDTO.setPhone(phone);
+
+        Response<FindUserByPhoneRspDTO> response = userFeignApi.findByPhone(findUserByPhoneReqDTO);
 
         if (!response.isSuccess()) {
             return null;
