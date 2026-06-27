@@ -15,6 +15,7 @@ import com.tefire.user.biz.model.vo.UpdateUserInfoReqVO;
 import com.tefire.user.biz.service.UserService;
 import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
+import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
 import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 /*
@@ -52,4 +53,11 @@ public class UserController {
     public Response<FindUserByPhoneRspDTO> findByPhone(@Validated @RequestBody FindUserByPhoneReqDTO findUserByPhoneReqDTO) {
         return userService.findByPhone(findUserByPhoneReqDTO);
     }
+
+    @PostMapping("/password/update")
+    @ApiOperationLog(description = "密码更新")
+    public Response<?> updatePassword(@Validated @RequestBody UpdateUserPasswordReqDTO updateUserPasswordReqDTO) {
+        return userService.updatePassword(updateUserPasswordReqDTO);
+    }
+
 }

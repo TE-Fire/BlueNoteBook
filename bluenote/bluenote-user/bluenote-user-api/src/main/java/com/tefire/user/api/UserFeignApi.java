@@ -8,6 +8,7 @@ import com.tefire.framework.common.response.Response;
 import com.tefire.user.constant.ApiConstants;
 import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
+import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
 import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 /*
@@ -38,4 +39,13 @@ public interface UserFeignApi {
      */
     @PostMapping(value = PREFIX + "/findByPhone")
     Response<FindUserByPhoneRspDTO> findByPhone(@RequestBody FindUserByPhoneReqDTO findUserByPhoneReqDTO);
+
+     /**
+     * 更新密码
+     *
+     * @param updateUserPasswordReqDTO
+     * @return
+     */
+    @PostMapping(value = PREFIX + "/password/update")
+    Response<?> updatePassword(@RequestBody UpdateUserPasswordReqDTO updateUserPasswordReqDTO);
 }

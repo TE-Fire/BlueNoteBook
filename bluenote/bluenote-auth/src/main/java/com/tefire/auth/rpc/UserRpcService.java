@@ -6,6 +6,7 @@ import com.tefire.framework.common.response.Response;
 import com.tefire.user.api.UserFeignApi;
 import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
+import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
 import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 import jakarta.annotation.Resource;
@@ -51,5 +52,17 @@ public class UserRpcService {
         }
 
         return response.getData();
+    }
+
+    /**
+     * 密码更新
+     *
+     * @param encodePassword
+     */
+    public void updatePassword(String encodePassword) {
+        UpdateUserPasswordReqDTO updateUserPasswordReqDTO = new UpdateUserPasswordReqDTO();
+        updateUserPasswordReqDTO.setEncodePassword(encodePassword);
+
+        userFeignApi.updatePassword(updateUserPasswordReqDTO);
     }
 }

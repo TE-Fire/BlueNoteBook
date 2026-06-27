@@ -35,6 +35,7 @@ import com.tefire.user.biz.rpc.OssRpcService;
 import com.tefire.user.biz.service.UserService;
 import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
+import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
 import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 import jakarta.annotation.Resource;
@@ -220,5 +221,21 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         return Response.success(findUserByPhoneRspDTO);
+    }
+
+    @Override
+    public Response<?> updatePassword(UpdateUserPasswordReqDTO updateUserPasswordReqDTO) {
+        // 获取当前请求对应的用户 ID
+        Long userId = LoginUserContextHolder.getUserId();
+
+        UserDO userDO = UserDO.builder()
+                .id(userId)
+                .password(updateUserPasswordReqDTO.getEncodePassword()) // 加密后的密码
+                .updateTime(LocalDateTime.now())
+                .build();
+        // 更新密码
+        userDOMapper.updateByPrimaryKeySelective(userDO);
+
+        return Response.success();
     }
 }

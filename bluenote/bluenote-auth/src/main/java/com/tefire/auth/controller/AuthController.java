@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tefire.auth.model.vo.user.UpdatePasswordReqVO;
 import com.tefire.auth.model.vo.user.UserLoginReqVO;
-import com.tefire.auth.service.UserService;
+import com.tefire.auth.service.AuthService;
 import com.tefire.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.tefire.framework.common.response.Response;
 
@@ -21,10 +21,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @Slf4j
-public class UserController {
+public class AuthController {
     
     @Resource
-    private UserService userService;
+    private AuthService userService;
     
     @PostMapping("/login")
     @ApiOperationLog(description = "用户登录/注册")

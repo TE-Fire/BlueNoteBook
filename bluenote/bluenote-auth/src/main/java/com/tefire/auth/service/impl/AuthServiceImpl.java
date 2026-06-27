@@ -1,6 +1,5 @@
 package com.tefire.auth.service.impl;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,14 +11,13 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.base.Preconditions;
 import com.tefire.auth.constant.RedisKeyConstants;
-import com.tefire.auth.domain.dataobject.UserDO;
 import com.tefire.auth.domain.mapper.UserDOMapper;
 import com.tefire.auth.enums.LoginTypeEnum;
 import com.tefire.auth.enums.ResponseCodeEnum;
 import com.tefire.auth.model.vo.user.UpdatePasswordReqVO;
 import com.tefire.auth.model.vo.user.UserLoginReqVO;
 import com.tefire.auth.rpc.UserRpcService;
-import com.tefire.auth.service.UserService;
+import com.tefire.auth.service.AuthService;
 import com.tefire.framework.biz.context.holder.LoginUserContextHolder;
 import com.tefire.framework.common.exception.BizException;
 import com.tefire.framework.common.response.Response;
@@ -32,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class UserServiceImpl implements UserService{
+public class AuthServiceImpl implements AuthService{
     
     @Resource
     private UserDOMapper userDOMapper;
@@ -138,15 +136,8 @@ public class UserServiceImpl implements UserService{
         // 密码加密
         String encodePassword = passwordEncoder.encode(newPassword);
 
-        Long userId = LoginUserContextHolder.getUserId();
-
-        UserDO userDO = UserDO.builder()
-                    .id(userId)
-                    .password(encodePassword)
-                    .updateTime(LocalDateTime.now())
-                    .build();
-
-        userDOMapper.updateByPrimaryKeySelective(userDO);
+        // RPC: 调用用户服务：更新密码
+        userRpcService.updatePassword(encodePassword);
 
         return Response.success();
     }

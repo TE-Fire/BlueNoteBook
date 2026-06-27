@@ -4,6 +4,7 @@ import com.tefire.framework.common.response.Response;
 import com.tefire.user.biz.model.vo.UpdateUserInfoReqVO;
 import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
+import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
 import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 /*
@@ -35,4 +36,12 @@ public interface UserService {
      * @return
      */
     Response<FindUserByPhoneRspDTO> findByPhone(FindUserByPhoneReqDTO findUserByPhoneReqDTO);
+
+    /**
+     * 更新密码
+     *
+     * @param updateUserPasswordReqDTO
+     * @return
+     */
+    Response<?> updatePassword(UpdateUserPasswordReqDTO updateUserPasswordReqDTO);
 }

@@ -4,7 +4,7 @@ import com.tefire.auth.model.vo.user.UpdatePasswordReqVO;
 import com.tefire.auth.model.vo.user.UserLoginReqVO;
 import com.tefire.framework.common.response.Response;
 
-public interface UserService {
+public interface AuthService {
     /**
      * 登录与注册
      * @param userLoginReqVO
