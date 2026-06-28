@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PushRolePermissions2RedisRunner implements ApplicationRunner{
     
     @Resource
-    private RedisTemplate<String, String> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
     @Resource
     private RoleDOMapper roleDOMapper;
     @Resource
@@ -63,11 +63,14 @@ public class PushRolePermissions2RedisRunner implements ApplicationRunner{
 
             if (CollUtil.isNotEmpty(roleDOS)) {
                 // 拿到所有角色的 ID
+                @SuppressWarnings("null")
                 List<Long> roleIds = roleDOS.stream().map(RoleDO::getId).toList();
 
                 // 根据角色 ID, 批量查询出所有角色对应的权限
                 List<RolePermissionDO> rolePermissionDOS = rolePermissionDOMapper.selectByRoleIds(roleIds);
+                log.debug("rolePermissionDOS: {}", rolePermissionDOS.toString());
                 // 按角色 ID 分组, 每个角色 ID 对应多个权限 ID
+                @SuppressWarnings("null")
                 Map<Long, List<Long>> roleIdPermissionIdsMap = rolePermissionDOS.stream().collect(
                         Collectors.groupingBy(RolePermissionDO::getRoleId,
                                 Collectors.mapping(RolePermissionDO::getPermissionId, Collectors.toList()))
@@ -75,7 +78,9 @@ public class PushRolePermissions2RedisRunner implements ApplicationRunner{
 
                 // 查询 APP 端所有被启用的权限
                 List<PermissionDO> permissionDOS = permissionDOMapper.selectAppEnabledList();
+                log.debug("permissionDOS: {}", permissionDOS.toString());
                 // 权限 ID - 权限 DO
+                @SuppressWarnings("null")
                 Map<Long, PermissionDO> permissionIdDOMap = permissionDOS.stream().collect(
                         Collectors.toMap(PermissionDO::getId, permissionDO -> permissionDO)
                 );
@@ -95,13 +100,15 @@ public class PushRolePermissions2RedisRunner implements ApplicationRunner{
                     if (CollUtil.isNotEmpty(permissionIds)) {
                         List<String> permissionKeys = Lists.newArrayList();
                         permissionIds.forEach(permissionId -> {
-                            // 根据权限 ID 获取具体的权限 DO 对象
                             PermissionDO permissionDO = permissionIdDOMap.get(permissionId);
-                            permissionKeys.add(permissionDO.getPermissionKey());
+                            if (permissionDO != null) {
+                                permissionKeys.add(permissionDO.getPermissionKey());
+                            }
                         });
                         roleKeyPermissionsMap.put(roleKey, permissionKeys);
                     }
                 });
+                log.debug("roleKeyPermissionsMap: {}", roleKeyPermissionsMap.toString());
 
                 // 同步至 Redis 中，方便后续网关查询鉴权使用
                 roleKeyPermissionsMap.forEach((roleKey, permissions) -> {

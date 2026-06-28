@@ -11,7 +11,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        - id: auth
+        - id: user
           uri: lb://bluenote-user
           predicates:
             - Path=/user/**
