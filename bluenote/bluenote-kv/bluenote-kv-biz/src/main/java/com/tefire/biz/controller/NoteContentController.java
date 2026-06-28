@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tefire.biz.kv.service.NoteContentService;
 import com.tefire.framework.common.response.Response;
 import com.tefire.kv.dto.req.AddNoteContentReqDTO;
+import com.tefire.kv.dto.req.DeleteNoteContentReqDTO;
 import com.tefire.kv.dto.req.FindNoteContentReqDTO;
 import com.tefire.kv.dto.rsp.FindNoteContentRspDTO;
 
@@ -35,5 +36,10 @@ public class NoteContentController {
     @PostMapping(value = "/note/content/find")
     public Response<FindNoteContentRspDTO> findNoteContent(@Validated @RequestBody FindNoteContentReqDTO findNoteContentReqDTO) {
         return noteContentService.findNoteContent(findNoteContentReqDTO);
+    }
+
+    @PostMapping(value = "/note/content/delete")
+    public Response<?> deleteNoteContent(@Validated @RequestBody DeleteNoteContentReqDTO deleteNoteContentReqDTO) {
+        return noteContentService.deleteNoteContent(deleteNoteContentReqDTO);
     }
 }

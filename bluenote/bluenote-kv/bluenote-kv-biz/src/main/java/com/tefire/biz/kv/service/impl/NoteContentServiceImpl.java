@@ -12,6 +12,7 @@ import com.tefire.biz.kv.service.NoteContentService;
 import com.tefire.framework.common.exception.BizException;
 import com.tefire.framework.common.response.Response;
 import com.tefire.kv.dto.req.AddNoteContentReqDTO;
+import com.tefire.kv.dto.req.DeleteNoteContentReqDTO;
 import com.tefire.kv.dto.req.FindNoteContentReqDTO;
 import com.tefire.kv.dto.rsp.FindNoteContentRspDTO;
 
@@ -57,5 +58,14 @@ public class NoteContentServiceImpl implements NoteContentService {
                         .build();
 
         return Response.success(findNoteContentRspDTO);
+    }
+
+    @Override
+    public Response<?> deleteNoteContent(DeleteNoteContentReqDTO deleteNoteContentReqDTO) {
+        String noteId = deleteNoteContentReqDTO.getNoteId();
+
+        noteContentRepository.deleteById(UUID.fromString(noteId));
+
+        return Response.success();
     }
 }

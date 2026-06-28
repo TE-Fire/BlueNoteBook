@@ -1,0 +1,23 @@
+package com.tefire.kv.dto.req;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/*
+ * @Author: TE-Fire 3037749727@qq.com
+ * @Date: 2026-06-28 15:34:27
+ * @Description: 删除笔记
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class DeleteNoteContentReqDTO {
+
+    @NotBlank(message = "笔记 ID 不能为空")
+    private String noteId;
+
+}

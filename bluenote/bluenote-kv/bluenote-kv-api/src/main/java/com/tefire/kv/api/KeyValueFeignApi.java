@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.tefire.framework.common.response.Response;
 import com.tefire.kv.constants.ApiConstants;
 import com.tefire.kv.dto.req.AddNoteContentReqDTO;
+import com.tefire.kv.dto.req.DeleteNoteContentReqDTO;
 import com.tefire.kv.dto.req.FindNoteContentReqDTO;
 import com.tefire.kv.dto.rsp.FindNoteContentRspDTO;
 
@@ -25,4 +26,7 @@ public interface KeyValueFeignApi {
 
     @PostMapping(value = PREFIX + "/note/content/find")
     Response<FindNoteContentRspDTO> findNoteContent(@RequestBody FindNoteContentReqDTO findNoteContentReqDTO); 
+
+    @PostMapping(value = PREFIX + "/note/content/delete")
+    Response<?> deleteNoteContent(@RequestBody DeleteNoteContentReqDTO deleteNoteContentReqDTO);
 }

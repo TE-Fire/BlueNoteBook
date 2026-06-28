@@ -7,6 +7,7 @@ package com.tefire.biz.kv.service;
  */
 import com.tefire.framework.common.response.Response;
 import com.tefire.kv.dto.req.AddNoteContentReqDTO;
+import com.tefire.kv.dto.req.DeleteNoteContentReqDTO;
 import com.tefire.kv.dto.req.FindNoteContentReqDTO;
 import com.tefire.kv.dto.rsp.FindNoteContentRspDTO;
 
@@ -27,4 +28,12 @@ public interface NoteContentService {
      * @return
      */
     Response<FindNoteContentRspDTO> findNoteContent(FindNoteContentReqDTO findNoteContentReqDTO);
+
+      /**
+     * 删除笔记内容
+     * 
+     * @param deleteNoteContentReqDTO
+     * @return
+     */
+    Response<?> deleteNoteContent(DeleteNoteContentReqDTO deleteNoteContentReqDTO);
 }
