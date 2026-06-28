@@ -23,6 +23,7 @@
         <module>bluenote-gateway</module>
         <module>bluenote-oss</module>
         <module>bluenote-user</module>
+        <module>bluenote-kv</module>
     </modules>
 
     <properties>

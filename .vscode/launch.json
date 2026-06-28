@@ -48,5 +48,15 @@
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         },
+        {
+            "type": "java",
+            "name": "Spring Boot-Main<bluenote-kv-biz>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tefire.BlueNoteKVBizApplication",
+            "projectName": "bluenote-kv-biz",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
     ]
 }
