@@ -7,7 +7,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.base.Preconditions;
 import com.tefire.auth.constant.RedisKeyConstants;
@@ -33,9 +32,6 @@ public class AuthServiceImpl implements AuthService{
     
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
-
-    @Resource
-    private TransactionTemplate transactionTemplate;
 
     @Resource(name = "taskExecutor")
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
