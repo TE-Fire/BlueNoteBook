@@ -1,4 +1,4 @@
-package com.tefire.biz.enums;
+package com.tefire.biz.kv.enums;
 
 import com.tefire.framework.common.exception.BaseExceptionInterface;
 

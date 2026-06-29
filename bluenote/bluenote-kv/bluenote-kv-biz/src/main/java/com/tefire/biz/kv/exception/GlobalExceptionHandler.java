@@ -1,4 +1,4 @@
-package com.tefire.biz.exception;
+package com.tefire.biz.kv.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindingResult;
@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.tefire.biz.enums.ResponseCodeEnum;
+import com.tefire.biz.kv.enums.ResponseCodeEnum;
 import com.tefire.framework.common.exception.BizException;
 import com.tefire.framework.common.response.Response;
 

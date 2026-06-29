@@ -5,9 +5,9 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.tefire.biz.enums.ResponseCodeEnum;
 import com.tefire.biz.kv.domain.dataobject.NoteContentDO;
 import com.tefire.biz.kv.domain.repository.NoteContentRepository;
+import com.tefire.biz.kv.enums.ResponseCodeEnum;
 import com.tefire.biz.kv.service.NoteContentService;
 import com.tefire.framework.common.exception.BizException;
 import com.tefire.framework.common.response.Response;

@@ -1,4 +1,4 @@
-package com.tefire.biz.controller;
+package com.tefire.biz.kv.controller;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
