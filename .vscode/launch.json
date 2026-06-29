@@ -57,6 +57,16 @@
             "projectName": "bluenote-kv-biz",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-Main<bluenote-distributed-id-generator-biz>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tefire.BlueNoteDistributedIdGeneratorBizApplication",
+            "projectName": "bluenote-distributed-id-generator-biz",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

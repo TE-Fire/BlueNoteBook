@@ -24,6 +24,7 @@
         <module>bluenote-oss</module>
         <module>bluenote-user</module>
         <module>bluenote-kv</module>
+        <module>bluenote-distributed-id-generator</module>
     </modules>
 
     <properties>
