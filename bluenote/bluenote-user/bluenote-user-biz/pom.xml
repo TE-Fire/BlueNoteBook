@@ -104,6 +104,10 @@
             <artifactId>bluenote-user-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.tefire</groupId>
+            <artifactId>bluenote-distributed-id-generator-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
