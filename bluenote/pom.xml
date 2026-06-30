@@ -25,6 +25,7 @@
         <module>bluenote-user</module>
         <module>bluenote-kv</module>
         <module>bluenote-distributed-id-generator</module>
+        <module>bluenote-note</module>
     </modules>
 
     <properties>
