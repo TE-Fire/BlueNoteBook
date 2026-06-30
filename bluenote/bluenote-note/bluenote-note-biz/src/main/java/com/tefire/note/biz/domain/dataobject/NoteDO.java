@@ -7,11 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/*
- * @Author: TE-Fire 3037749727@qq.com
- * @Date: 2026-06-30 15:13:09
- * @Description: 笔记
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -45,4 +40,5 @@ public class NoteDO {
 
     private Integer status;
 
+    private String contentUuid;
 }
