@@ -8,6 +8,8 @@ import com.tefire.framework.common.response.Response;
 import com.tefire.kv.api.KeyValueFeignApi;
 import com.tefire.kv.dto.req.AddNoteContentReqDTO;
 import com.tefire.kv.dto.req.DeleteNoteContentReqDTO;
+import com.tefire.kv.dto.req.FindNoteContentReqDTO;
+import com.tefire.kv.dto.rsp.FindNoteContentRspDTO;
 
 import jakarta.annotation.Resource;
 
@@ -61,4 +63,24 @@ public class KeyValueRpcService {
 
         return true;
     }
+
+    /**
+     * 查询笔记内容
+     * 
+     * @param uuid
+     * @return
+     */
+    public String findNoteContent(String uuid) {
+        FindNoteContentReqDTO findNoteContentReqDTO = new FindNoteContentReqDTO();
+        findNoteContentReqDTO.setUuid(uuid);
+
+        Response<FindNoteContentRspDTO> response = keyValueFeignApi.findNoteContent(findNoteContentReqDTO);
+
+        if (Objects.isNull(response) || !response.isSuccess() || Objects.isNull(response.getData())) {
+            return null;
+        }
+
+        return response.getData().getContent();
+    }
+
 }

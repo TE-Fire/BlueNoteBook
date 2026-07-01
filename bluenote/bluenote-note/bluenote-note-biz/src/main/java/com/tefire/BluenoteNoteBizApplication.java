@@ -12,7 +12,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  */
 @SpringBootApplication
 @MapperScan("com.tefire.note.biz.domain.mapper")
-@EnableFeignClients(basePackages = {"com.tefire.kv.api", "com.tefire.generator.api"})
+@EnableFeignClients(basePackages = {"com.tefire.kv.api", "com.tefire.generator.api", "com.tefire.user.api"})
 public class BluenoteNoteBizApplication {
     public static void main(String[] args) {
         SpringApplication.run(BluenoteNoteBizApplication.class, args);

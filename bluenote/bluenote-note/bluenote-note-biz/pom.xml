@@ -103,6 +103,11 @@
             <groupId>com.tefire</groupId>
             <artifactId>bluenote-kv-api</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.tefire</groupId>
+            <artifactId>bluenote-user-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
