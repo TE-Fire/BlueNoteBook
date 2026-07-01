@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +43,7 @@ import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
 import com.tefire.user.dto.resp.FindUserByIdRspDTO;
 import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
+import cn.hutool.core.util.RandomUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,6 +68,9 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private DistributedIdGeneratorRpcService distributedIdGeneratorRpcService;
+
+    @Resource(name = "taskExecutor")
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @SuppressWarnings("null")
     @Override
@@ -255,9 +261,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Response<FindUserByIdRspDTO> findById(FindUserByIdReqDTO findUserByIdReqDTO) {
-        UserDO userDO = userDOMapper.selectByPrimaryKey(findUserByIdReqDTO.getId());
+        Long userId = findUserByIdReqDTO.getId();
+
+        String userInfoKey = RedisKeyConstants.buildUserInfoKey(userId);
+
+        String userInfoRedisValue  = (String) redisTemplate.opsForValue().get(userInfoKey);
+
+        if (StringUtils.isNotBlank(userInfoRedisValue)) {
+             // 将存储的 Json 字符串转换成对象，并返回
+            FindUserByIdRspDTO findUserByIdRspDTO = JsonUtils.parseObject(userInfoRedisValue, FindUserByIdRspDTO.class);
+            return Response.success(findUserByIdRspDTO);
+        }
+        UserDO userDO = userDOMapper.selectByPrimaryKey(userId);
 
         if (Objects.isNull(userDO)) {
+            threadPoolTaskExecutor.execute(() -> {
+                 // 防止缓存穿透，将空数据存入 Redis 缓存 (过期时间不宜设置过长)
+                // 保底1分钟 + 随机秒数
+                long expireSeconds = 60 + RandomUtil.randomInt(60);
+                redisTemplate.opsForValue().set(userInfoKey, "null", expireSeconds, TimeUnit.SECONDS);
+            });
             throw new BizException(ResponseCodeEnum.USER_NOT_FOUND);
         }
 
@@ -267,7 +290,13 @@ public class UserServiceImpl implements UserService {
                      .avatar(userDO.getAvatar())
                      .build();
 
-        return Response.success(findUserByIdRspDTO);
+        // 异步将信息存入 Redis 缓存，提升响应速度
+        threadPoolTaskExecutor.submit(() -> {
+            // 过期时间（保底1天 + 随机秒数，将缓存过期时间打散，防止同一时间大量缓存失效，导致数据库压力太大）
+            long expireSeconds = 60*60*24 + RandomUtil.randomInt(60*60*24);
+            redisTemplate.opsForValue().set(userInfoKey, JsonUtils.toJsonString(findUserByIdRspDTO), expireSeconds, TimeUnit.SECONDS);
+        });
 
+        return Response.success(findUserByIdRspDTO);
     }
 }
