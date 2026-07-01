@@ -17,6 +17,13 @@ spring:
             - Path=/user/**
           filters:
             - StripPrefix=1
+        
+        - id: note
+          uri: lb://bluenote-note
+          predicates:
+            - Path=/note/**
+          filters:
+            - StripPrefix=1
 
        
   data:
