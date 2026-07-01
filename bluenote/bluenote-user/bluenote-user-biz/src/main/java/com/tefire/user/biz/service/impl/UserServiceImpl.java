@@ -34,9 +34,11 @@ import com.tefire.user.biz.model.vo.UpdateUserInfoReqVO;
 import com.tefire.user.biz.rpc.DistributedIdGeneratorRpcService;
 import com.tefire.user.biz.rpc.OssRpcService;
 import com.tefire.user.biz.service.UserService;
+import com.tefire.user.dto.req.FindUserByIdReqDTO;
 import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
 import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
+import com.tefire.user.dto.resp.FindUserByIdRspDTO;
 import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 import jakarta.annotation.Resource;
@@ -249,5 +251,23 @@ public class UserServiceImpl implements UserService {
         userDOMapper.updateByPrimaryKeySelective(userDO);
 
         return Response.success();
+    }
+
+    @Override
+    public Response<FindUserByIdRspDTO> findById(FindUserByIdReqDTO findUserByIdReqDTO) {
+        UserDO userDO = userDOMapper.selectByPrimaryKey(findUserByIdReqDTO.getId());
+
+        if (Objects.isNull(userDO)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_FOUND);
+        }
+
+        FindUserByIdRspDTO findUserByIdRspDTO = FindUserByIdRspDTO.builder()
+                     .id(userDO.getId())
+                     .nickName(userDO.getNickname())
+                     .avatar(userDO.getAvatar())
+                     .build();
+
+        return Response.success(findUserByIdRspDTO);
+
     }
 }

@@ -2,9 +2,11 @@ package com.tefire.user.biz.service;
 
 import com.tefire.framework.common.response.Response;
 import com.tefire.user.biz.model.vo.UpdateUserInfoReqVO;
+import com.tefire.user.dto.req.FindUserByIdReqDTO;
 import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
 import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
+import com.tefire.user.dto.resp.FindUserByIdRspDTO;
 import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 /*
@@ -44,4 +46,12 @@ public interface UserService {
      * @return
      */
     Response<?> updatePassword(UpdateUserPasswordReqDTO updateUserPasswordReqDTO);
+
+    /**
+     * 根据用户 ID 查询用户信息
+     *
+     * @param findUserByIdReqDTO
+     * @return
+     */
+    Response<FindUserByIdRspDTO> findById(FindUserByIdReqDTO findUserByIdReqDTO);
 }

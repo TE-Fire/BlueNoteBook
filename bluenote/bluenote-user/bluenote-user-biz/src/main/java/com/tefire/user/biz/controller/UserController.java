@@ -13,9 +13,11 @@ import com.tefire.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.tefire.framework.common.response.Response;
 import com.tefire.user.biz.model.vo.UpdateUserInfoReqVO;
 import com.tefire.user.biz.service.UserService;
+import com.tefire.user.dto.req.FindUserByIdReqDTO;
 import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
 import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
+import com.tefire.user.dto.resp.FindUserByIdRspDTO;
 import com.tefire.user.dto.resp.FindUserByPhoneRspDTO;
 
 /*
@@ -60,4 +62,9 @@ public class UserController {
         return userService.updatePassword(updateUserPasswordReqDTO);
     }
 
+    @PostMapping("/findById")
+    @ApiOperationLog(description = "查询用户信息")
+    public Response<FindUserByIdRspDTO> findById(@Validated @RequestBody FindUserByIdReqDTO findUserByIdReqDTO) {
+        return userService.findById(findUserByIdReqDTO);
+    }
 }
