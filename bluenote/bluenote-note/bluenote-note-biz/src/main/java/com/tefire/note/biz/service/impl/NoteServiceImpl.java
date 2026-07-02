@@ -3,6 +3,7 @@ package com.tefire.note.biz.service.impl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +39,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import jakarta.annotation.Resource;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -170,6 +172,7 @@ public class NoteServiceImpl implements NoteService {
 
 
     @Override
+    @SneakyThrows
     public Response<FindNoteDetailRspVO> findNoteDetail(FindNoteDetailReqVO findNoteDetailReqVO) {
         Long noteId = findNoteDetailReqVO.getId();
 
@@ -196,7 +199,7 @@ public class NoteServiceImpl implements NoteService {
                 // 写入本地缓存
                 LOCAL_CACHE.put(noteId, Objects.isNull(findNoteDetailRspVO) ? "null" : JsonUtils.toJsonString(findNoteDetailRspVO));
             });
-            
+
             // 校验可见性
             if (Objects.nonNull(findNoteDetailRspVO)) {
                Integer visible = findNoteDetailRspVO.getVisible();
@@ -222,42 +225,62 @@ public class NoteServiceImpl implements NoteService {
         Long creatorId = noteDO.getCreatorId();
         checkNoteVisible(visible, userId, creatorId);
 
+        // 并发查询优化
         // RPC: 调用用户服务
-        FindUserByIdRspDTO findUserByIdRspDTO = userRpcService.findById(creatorId);
+        CompletableFuture<FindUserByIdRspDTO> userResultFuture = CompletableFuture
+                .supplyAsync(() -> userRpcService.findById(creatorId), threadPoolTaskExecutor);
+        // FindUserByIdRspDTO findUserByIdRspDTO = userRpcService.findById(creatorId);
 
         // RPC: 调用 k-v 存储服务获取笔记内容
-        String content = null;
+        // String content = null;
+        CompletableFuture<String> contentResultFuture = CompletableFuture.supplyAsync(null);
+
         if (Objects.equals(noteDO.getIsContentEmpty(), Boolean.FALSE)) {
-                content = keyValueRpcService.findNoteContent(noteDO.getContentUuid());
+                // content = keyValueRpcService.findNoteContent(noteDO.getContentUuid());
+                contentResultFuture = CompletableFuture
+                        .supplyAsync(() -> keyValueRpcService.findNoteContent(noteDO.getContentUuid()), threadPoolTaskExecutor);
         }
 
-        Integer noteType = noteDO.getType();
-         // 图文笔记的图片链接
-        String imgUrisStr = noteDO.getImgUris();
-        // 图文笔记图片链接(集合)
-        List<String> imgUris = null;
-        // 如果查询的是图文笔记，需要将图片链接的逗号分隔开，转换成集合
-        if (Objects.equals(noteType, NoteTypeEnum.IMAGE_TEXT.getCode()) && StringUtils.isNotBlank(imgUrisStr)) {
-            imgUris = List.of(imgUrisStr.split(","));
-        }
+        CompletableFuture<String> finalContentResultFuture = contentResultFuture;
+        CompletableFuture<FindNoteDetailRspVO> resultFuture = CompletableFuture
+                .allOf(userResultFuture, contentResultFuture)
+                .thenApply(s -> {
+                    // 获取future 返回的值
+                    FindUserByIdRspDTO findUserByIdRspDTO = userResultFuture.join();
+                    String content = finalContentResultFuture.join();
 
-        // 构建返参 VO 实体类
-        FindNoteDetailRspVO findNoteDetailRspVO = FindNoteDetailRspVO.builder()
-                .id(noteDO.getId())
-                .type(noteDO.getType())
-                .title(noteDO.getTitle())
-                .content(content)
-                .imgUris(imgUris)
-                .topicId(noteDO.getTopicId())
-                .topicName(noteDO.getTopicName())
-                .creatorId(noteDO.getCreatorId())
-                .creatorName(findUserByIdRspDTO.getNickName())
-                .avatar(findUserByIdRspDTO.getAvatar())
-                .videoUri(noteDO.getVideoUri())
-                .updateTime(noteDO.getUpdateTime())
-                .visible(noteDO.getVisible())
-                .build();
+                    Integer noteType = noteDO.getType();
+                    // 图文笔记的图片链接
+                    String imgUrisStr = noteDO.getImgUris();
+                    // 图文笔记图片链接(集合)
+                    List<String> imgUris = null;
+                    // 如果查询的是图文笔记，需要将图片链接的逗号分隔开，转换成集合
+                    if (Objects.equals(noteType, NoteTypeEnum.IMAGE_TEXT.getCode()) && StringUtils.isNotBlank(imgUrisStr)) {
+                        imgUris = List.of(imgUrisStr.split(","));
+                    }
 
+                    // 构建返参 VO 实体类
+                    FindNoteDetailRspVO findNoteDetailRspVO = FindNoteDetailRspVO.builder()
+                            .id(noteDO.getId())
+                            .type(noteDO.getType())
+                            .title(noteDO.getTitle())
+                            .content(content)
+                            .imgUris(imgUris)
+                            .topicId(noteDO.getTopicId())
+                            .topicName(noteDO.getTopicName())
+                            .creatorId(noteDO.getCreatorId())
+                            .creatorName(findUserByIdRspDTO.getNickName())
+                            .avatar(findUserByIdRspDTO.getAvatar())
+                            .videoUri(noteDO.getVideoUri())
+                            .updateTime(noteDO.getUpdateTime())
+                            .visible(noteDO.getVisible())
+                            .build();
+                    
+                    return findNoteDetailRspVO;
+                });
+       
+         // 获取拼装后的 FindNoteDetailRspVO
+        FindNoteDetailRspVO findNoteDetailRspVO = resultFuture.get(); 
         // 异步线程中将笔记详情存入 Redis
         threadPoolTaskExecutor.submit(() -> {
             String noteDetailJson1 = JsonUtils.toJsonString(findNoteDetailRspVO);
