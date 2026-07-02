@@ -4,6 +4,7 @@ import com.tefire.framework.common.response.Response;
 import com.tefire.note.biz.model.vo.FindNoteDetailReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
+import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
 
 /*
  * @Author: TE-Fire 3037749727@qq.com
@@ -25,4 +26,11 @@ public interface NoteService {
      * @return
      */
     Response<FindNoteDetailRspVO> findNoteDetail(FindNoteDetailReqVO findNoteDetailReqVO);
+
+     /**
+     * 笔记更新
+     * @param updateNoteReqVO
+     * @return
+     */
+    Response<?> updateNote(UpdateNoteReqVO updateNoteReqVO);
 }

@@ -1,3 +1,8 @@
+/*
+ * @Author: TE-Fire 3037749727@qq.com
+ * @Date: 2026-07-01 12:52:56
+ * @Description: 
+ */
 package com.tefire.note.biz.controller;
 
 import org.springframework.validation.annotation.Validated;
@@ -11,6 +16,7 @@ import com.tefire.framework.common.response.Response;
 import com.tefire.note.biz.model.vo.FindNoteDetailReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
+import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
 import com.tefire.note.biz.service.NoteService;
 
 import jakarta.annotation.Resource;
@@ -34,5 +40,11 @@ public class NoteController {
     @ApiOperationLog(description = "笔记详情")
     public Response<FindNoteDetailRspVO> findNoteDetail(@Validated @RequestBody FindNoteDetailReqVO findNoteDetailReqVO) {
         return noteService.findNoteDetail(findNoteDetailReqVO);
+    }
+
+    @PostMapping(value = "/update")
+    @ApiOperationLog(description = "笔记修改")
+    public Response<?> updateNote(@Validated @RequestBody UpdateNoteReqVO updateNoteReqVO) {
+        return noteService.updateNote(updateNoteReqVO);
     }
 }
