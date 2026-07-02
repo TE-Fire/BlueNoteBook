@@ -10,6 +10,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Preconditions;
 import com.tefire.framework.biz.context.holder.LoginUserContextHolder;
 import com.tefire.framework.common.exception.BizException;
@@ -62,6 +64,12 @@ public class NoteServiceImpl implements NoteService {
 
     @Resource(name = "taskExecutor")
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+
+    private static final Cache<Long, String> LOCAL_CACHE = Caffeine.newBuilder()
+            .initialCapacity(10000)
+            .maximumSize(10000)
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .build();
 
     @Override
     public Response<?> publishNote(PublishNoteReqVO publishNoteReqVO) {
@@ -167,12 +175,28 @@ public class NoteServiceImpl implements NoteService {
 
         Long userId = LoginUserContextHolder.getUserId();
 
+        // 先从本地缓存查询
+        String findNoteDetailRspVOStrLocalCache  = LOCAL_CACHE.getIfPresent(noteId);
+        if (StringUtils.isNotBlank(findNoteDetailRspVOStrLocalCache)) {
+            FindNoteDetailRspVO findNoteDetailRspVO = JsonUtils.parseObject(findNoteDetailRspVOStrLocalCache, FindNoteDetailRspVO.class);
+            log.info("==> 命中了本地缓存；{}", findNoteDetailRspVOStrLocalCache);
+            // 校验可见性
+            checkNoteVisibleFromVO(userId, findNoteDetailRspVO);
+            return Response.success(findNoteDetailRspVO);
+        }
+
         String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
         String noteDetailJson = redisTemplate.opsForValue().get(noteDetailKey);
 
         // 缓存命中，直接返回
         if (StringUtils.isNotBlank(noteDetailJson)) {
             FindNoteDetailRspVO findNoteDetailRspVO = JsonUtils.parseObject(noteDetailJson, FindNoteDetailRspVO.class);
+            // 异步线程中将用户信息存入本地缓存
+            threadPoolTaskExecutor.submit(() -> {
+                // 写入本地缓存
+                LOCAL_CACHE.put(noteId, Objects.isNull(findNoteDetailRspVO) ? "null" : JsonUtils.toJsonString(findNoteDetailRspVO));
+            });
+            
             // 校验可见性
             if (Objects.nonNull(findNoteDetailRspVO)) {
                Integer visible = findNoteDetailRspVO.getVisible();
@@ -254,6 +278,18 @@ public class NoteServiceImpl implements NoteService {
         if (Objects.equals(visible, NoteVisibleEnum.PRIVATE.getCode())
                 && !Objects.equals(currUserId, creatorId)) { // 仅自己可见, 并且访问用户为笔记创建者才能访问，非本人则抛出异常
             throw new BizException(ResponseCodeEnum.NOTE_PRIVATE);
+        }
+    }
+
+    /**
+     * 校验笔记的可见性（针对 VO 实体类）
+     * @param userId
+     * @param findNoteDetailRspVO
+     */
+    private void checkNoteVisibleFromVO(Long userId, FindNoteDetailRspVO findNoteDetailRspVO) {
+        if (Objects.nonNull(findNoteDetailRspVO)) {
+            Integer visible = findNoteDetailRspVO.getVisible();
+            checkNoteVisible(visible, userId, findNoteDetailRspVO.getCreatorId());
         }
     }
 }
