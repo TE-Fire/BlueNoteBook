@@ -3,14 +3,19 @@ package com.tefire.note.biz.service.impl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Preconditions;
 import com.tefire.framework.biz.context.holder.LoginUserContextHolder;
 import com.tefire.framework.common.exception.BizException;
 import com.tefire.framework.common.response.Response;
+import com.tefire.framework.common.util.JsonUtils;
+import com.tefire.note.biz.constant.RedisKeyConstants;
 import com.tefire.note.biz.domain.dataobject.NoteDO;
 import com.tefire.note.biz.domain.mapper.NoteDOMapper;
 import com.tefire.note.biz.domain.mapper.TopicDOMapper;
@@ -29,6 +34,7 @@ import com.tefire.user.dto.resp.FindUserByIdRspDTO;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.RandomUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,6 +56,12 @@ public class NoteServiceImpl implements NoteService {
 
     @Resource
     private UserRpcService userRpcService;
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Resource(name = "taskExecutor")
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Override
     public Response<?> publishNote(PublishNoteReqVO publishNoteReqVO) {
@@ -155,10 +167,30 @@ public class NoteServiceImpl implements NoteService {
 
         Long userId = LoginUserContextHolder.getUserId();
 
+        String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
+        String noteDetailJson = redisTemplate.opsForValue().get(noteDetailKey);
+
+        // 缓存命中，直接返回
+        if (StringUtils.isNotBlank(noteDetailJson)) {
+            FindNoteDetailRspVO findNoteDetailRspVO = JsonUtils.parseObject(noteDetailJson, FindNoteDetailRspVO.class);
+            // 校验可见性
+            if (Objects.nonNull(findNoteDetailRspVO)) {
+               Integer visible = findNoteDetailRspVO.getVisible();
+               checkNoteVisible(visible, userId, findNoteDetailRspVO.getCreatorId());
+            }
+            
+            return Response.success(findNoteDetailRspVO);
+        }
         NoteDO noteDO = noteDOMapper.selectByPrimaryKey(noteId);
 
         if (Objects.isNull(noteDO)) {
-                throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
+            threadPoolTaskExecutor.execute(() -> {
+                 // 防止缓存穿透，将空数据存入 Redis 缓存 (过期时间不宜设置过长)
+                // 保底1分钟 + 随机秒数
+                long expireSeconds = 60 + RandomUtil.randomInt(60);
+                redisTemplate.opsForValue().set(noteDetailKey, "null", expireSeconds, TimeUnit.SECONDS);
+            });
+            throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
         }
 
         // 可见性检验
@@ -202,6 +234,13 @@ public class NoteServiceImpl implements NoteService {
                 .visible(noteDO.getVisible())
                 .build();
 
+        // 异步线程中将笔记详情存入 Redis
+        threadPoolTaskExecutor.submit(() -> {
+            String noteDetailJson1 = JsonUtils.toJsonString(findNoteDetailRspVO);
+            // 过期时间（保底1天 + 随机秒数，将缓存过期时间打散，防止同一时间大量缓存失效，导致数据库压力太大）
+            long expireSeconds = 60*60*24 + RandomUtil.randomInt(60*60);
+            redisTemplate.opsForValue().set(noteDetailKey, noteDetailJson1, expireSeconds, TimeUnit.SECONDS);
+        });
         return Response.success(findNoteDetailRspVO);
     }
 
