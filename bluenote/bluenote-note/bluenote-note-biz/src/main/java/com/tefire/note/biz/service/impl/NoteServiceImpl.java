@@ -7,8 +7,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -345,6 +349,10 @@ public class NoteServiceImpl implements NoteService {
             if (StringUtils.isBlank(topicName)) throw new BizException(ResponseCodeEnum.NOTE_UPDATE_FAIL);
         }
 
+        // 删除 Redis 缓存
+        String noteDetailRedisKey = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(noteDetailRedisKey);
+
         NoteDO noteDO2 = noteDOMapper.selectByPrimaryKey(noteId);
         String originalContentUuid = noteDO2.getContentUuid();
         boolean wasEmpty = noteDO2.getIsContentEmpty();
@@ -360,32 +368,6 @@ public class NoteServiceImpl implements NoteService {
             contentUuid = StringUtils.isBlank(originalContentUuid) ? UUID.randomUUID().toString() : originalContentUuid;
         }
 
-        NoteDO noteDO = NoteDO.builder()
-                .id(noteId)
-                .isContentEmpty(nowEmpty)
-                .contentUuid(contentUuid)
-                .imgUris(imgUris)
-                .title(updateNoteReqVO.getTitle())
-                .topicId(updateNoteReqVO.getTopicId())
-                .topicName(topicName)
-                .type(type)
-                .updateTime(LocalDateTime.now())
-                .videoUri(videoUri)
-                .build();
-
-        // 一次更新 MySQL（事务内）
-        noteDOMapper.updateByPrimaryKeySelective(noteDO);
-
-        // 删除 redis 缓存
-        String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
-        redisTemplate.delete(noteDetailKey);
-
-        // 删除本地缓存
-        // LOCAL_CACHE.invalidate(noteId);
-        // 同步发送广播模式 MQ，将所有实例中的本地缓存都删除掉
-        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
-
-
         // 据状态变化判断是否调用 KV, 排除更新前后content=null，减少kv调用
         boolean needKVOperation = !nowEmpty || !wasEmpty;
         if (needKVOperation) {
@@ -400,6 +382,63 @@ public class NoteServiceImpl implements NoteService {
                 // 可记录到数据库或消息队列，后续通过定时任务重试
             }
         }
+
+        NoteDO noteDO = NoteDO.builder()
+                .id(noteId)
+                .isContentEmpty(nowEmpty)
+                .contentUuid(contentUuid)
+                .imgUris(imgUris)
+                .title(updateNoteReqVO.getTitle())
+                .topicId(updateNoteReqVO.getTopicId())
+                .topicName(topicName)
+                .type(type)
+                .updateTime(LocalDateTime.now())
+                .videoUri(videoUri)
+                .build();
+
+        // 一次更新 MySQL
+        noteDOMapper.updateByPrimaryKeySelective(noteDO);
+        
+        // 一致性保证：延迟双删
+        String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(noteDetailKey);
+        // 异步发送延时消息
+        Message<String> message = MessageBuilder.withPayload(String.valueOf(noteId)).build();
+        rocketMQTemplate.asyncSend(MQConstants.TOPIC_DELAY_DELETE_NOTE_REDIS_CACHE, message,
+                    new SendCallback() {
+                        @Override
+                        public void onSuccess(SendResult sendResult) {
+                            log.info("## 延时删除 Redis 笔记缓存消息发送成功...");
+                        }
+
+                        @Override
+                        public void onException(Throwable e) {
+                            log.error("## 延时删除 Redis 笔记缓存消息发送失败...", e);
+                        }
+                    },
+                    3000, // 超时时间(毫秒)
+                    1 // 延迟级别，1 表示延时 1s
+            );
+
+        // 删除本地缓存
+        // LOCAL_CACHE.invalidate(noteId);
+        // 同步发送广播模式 MQ，将所有实例中的本地缓存都删除掉
+        // rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
+
+        try {
+            threadPoolTaskExecutor.submit(() -> {
+                try {
+                    rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
+                } catch (Exception e) {
+                    log.error("==> 异步发送删除缓存 MQ 失败，noteId={}", noteId, e);
+                }
+            });
+        } catch (Exception e) {
+            log.error("==> 提交异步任务失败，noteId={}", noteId, e);
+        }
+
+
+        
 
         return Response.success();
     }
