@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import com.tefire.framework.biz.context.holder.LoginUserContextHolder;
 import com.tefire.framework.common.exception.BizException;
 import com.tefire.framework.common.response.Response;
 import com.tefire.framework.common.util.JsonUtils;
+import com.tefire.note.biz.constant.MQConstants;
 import com.tefire.note.biz.constant.RedisKeyConstants;
 import com.tefire.note.biz.domain.dataobject.NoteDO;
 import com.tefire.note.biz.domain.mapper.NoteDOMapper;
@@ -64,6 +66,10 @@ public class NoteServiceImpl implements NoteService {
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
+
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
+
 
     @Resource(name = "taskExecutor")
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -234,7 +240,7 @@ public class NoteServiceImpl implements NoteService {
 
         // RPC: 调用 k-v 存储服务获取笔记内容
         // String content = null;
-        CompletableFuture<String> contentResultFuture = CompletableFuture.supplyAsync(null);
+        CompletableFuture<String> contentResultFuture = CompletableFuture.completedFuture(null);
 
         if (Objects.equals(noteDO.getIsContentEmpty(), Boolean.FALSE)) {
                 // content = keyValueRpcService.findNoteContent(noteDO.getContentUuid());
@@ -360,7 +366,10 @@ public class NoteServiceImpl implements NoteService {
         redisTemplate.delete(noteDetailKey);
 
         // 删除本地缓存
-        LOCAL_CACHE.invalidate(noteId);
+        // LOCAL_CACHE.invalidate(noteId);
+        // 同步发送广播模式 MQ，将所有实例中的本地缓存都删除掉
+        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
+        log.info("====> MQ：删除笔记本地缓存发送成功...");
 
         // 笔记内容更新
         NoteDO noteDO2 = noteDOMapper.selectByPrimaryKey(noteId);
@@ -384,6 +393,16 @@ public class NoteServiceImpl implements NoteService {
 
         return Response.success();
     }
+
+    /**
+     * 删除本地笔记缓存
+     * @param noteId
+     */
+    @Override
+    public void deleteNoteLocalCache(Long noteId) {
+        LOCAL_CACHE.invalidate(noteId);
+    }
+    
     /**
      * 校验笔记的可见性
      * @param visible 是否可见
