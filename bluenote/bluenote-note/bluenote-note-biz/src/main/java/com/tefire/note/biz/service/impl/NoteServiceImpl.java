@@ -345,11 +345,25 @@ public class NoteServiceImpl implements NoteService {
             if (StringUtils.isBlank(topicName)) throw new BizException(ResponseCodeEnum.NOTE_UPDATE_FAIL);
         }
 
+        NoteDO noteDO2 = noteDOMapper.selectByPrimaryKey(noteId);
+        String originalContentUuid = noteDO2.getContentUuid();
+        boolean wasEmpty = noteDO2.getIsContentEmpty();
+
         // 更新笔记元数据表 t_note
         String content = updateNoteReqVO.getContent();
+        boolean nowEmpty = StringUtils.isBlank(content);
+
+        String contentUuid = null;
+
+        if (!nowEmpty) { // 更新后内容不为空
+            // 空 -> 非空 || 非空 -> 非空
+            contentUuid = StringUtils.isBlank(originalContentUuid) ? UUID.randomUUID().toString() : originalContentUuid;
+        }
+
         NoteDO noteDO = NoteDO.builder()
                 .id(noteId)
-                .isContentEmpty(StringUtils.isBlank(content))
+                .isContentEmpty(nowEmpty)
+                .contentUuid(contentUuid)
                 .imgUris(imgUris)
                 .title(updateNoteReqVO.getTitle())
                 .topicId(updateNoteReqVO.getTopicId())
@@ -359,7 +373,8 @@ public class NoteServiceImpl implements NoteService {
                 .videoUri(videoUri)
                 .build();
 
-        noteDOMapper.updateByPrimaryKey(noteDO);
+        // 一次更新 MySQL（事务内）
+        noteDOMapper.updateByPrimaryKeySelective(noteDO);
 
         // 删除 redis 缓存
         String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
@@ -369,26 +384,21 @@ public class NoteServiceImpl implements NoteService {
         // LOCAL_CACHE.invalidate(noteId);
         // 同步发送广播模式 MQ，将所有实例中的本地缓存都删除掉
         rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
-        log.info("====> MQ：删除笔记本地缓存发送成功...");
 
-        // 笔记内容更新
-        NoteDO noteDO2 = noteDOMapper.selectByPrimaryKey(noteId);
-        String contentUuid = noteDO2.getContentUuid();
 
-        // 笔记内容是否更新成功
-        boolean isUpdateContentSuccess = false;
-        if (StringUtils.isBlank(content)) {
-             // 若笔记为空，且原来有内容UUID，才需要删除 k-v 存储
-            isUpdateContentSuccess = StringUtils.isNotBlank(contentUuid) ? keyValueRpcService.deleteNoteContent(contentUuid) : true;
-        } else {
-            // 若将无内容的笔记，更新为了有内容的笔记，需要重新生成 UUID
-            contentUuid = StringUtils.isBlank(contentUuid) ? UUID.randomUUID().toString() : contentUuid;
-            isUpdateContentSuccess = keyValueRpcService.saveNoteContent(contentUuid,content);
-        }
-
-        // 如果更新失败，抛出业务异常，回滚事务
-        if (!isUpdateContentSuccess) {
-            throw new BizException(ResponseCodeEnum.NOTE_UPDATE_FAIL);
+        // 据状态变化判断是否调用 KV, 排除更新前后content=null，减少kv调用
+        boolean needKVOperation = !nowEmpty || !wasEmpty;
+        if (needKVOperation) {
+            try {
+                if (nowEmpty) {
+                    keyValueRpcService.deleteNoteContent(originalContentUuid);
+                } else {
+                    keyValueRpcService.saveNoteContent(contentUuid, content);
+                }
+            } catch (Exception e) {
+                log.error("==> KV 服务调用失败，noteId={}, contentUuid={}", noteId, contentUuid, e);
+                // 可记录到数据库或消息队列，后续通过定时任务重试
+            }
         }
 
         return Response.success();
