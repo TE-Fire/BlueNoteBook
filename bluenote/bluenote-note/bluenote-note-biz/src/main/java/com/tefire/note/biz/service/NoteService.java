@@ -1,10 +1,12 @@
 package com.tefire.note.biz.service;
 
 import com.tefire.framework.common.response.Response;
+import com.tefire.note.biz.model.vo.DeleteNoteReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
+import com.tefire.note.biz.model.vo.UpdateNoteVisibleOnlyMeReqVO;
 
 /*
  * @Author: TE-Fire 3037749727@qq.com
@@ -40,5 +42,19 @@ public interface NoteService {
      * @param noteId
      */
     void deleteNoteLocalCache(Long noteId);
+
+     /**
+     * 删除笔记
+     * @param deleteNoteReqVO
+     * @return
+     */
+    Response<?> deleteNote(DeleteNoteReqVO deleteNoteReqVO);
+
+     /**
+     * 笔记仅对自己可见
+     * @param updateNoteVisibleOnlyMeReqVO
+     * @return
+     */
+    Response<?> visibleOnlyMe(UpdateNoteVisibleOnlyMeReqVO updateNoteVisibleOnlyMeReqVO);
 
 }

@@ -32,10 +32,12 @@ import com.tefire.note.biz.enums.NoteStatusEnum;
 import com.tefire.note.biz.enums.NoteTypeEnum;
 import com.tefire.note.biz.enums.NoteVisibleEnum;
 import com.tefire.note.biz.enums.ResponseCodeEnum;
+import com.tefire.note.biz.model.vo.DeleteNoteReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
+import com.tefire.note.biz.model.vo.UpdateNoteVisibleOnlyMeReqVO;
 import com.tefire.note.biz.rpc.DistributedIdGeneratorRpcService;
 import com.tefire.note.biz.rpc.KeyValueRpcService;
 import com.tefire.note.biz.rpc.UserRpcService;
@@ -443,6 +445,62 @@ public class NoteServiceImpl implements NoteService {
         return Response.success();
     }
 
+    @Override
+    public Response<?> deleteNote(DeleteNoteReqVO deleteNoteReqVO) {
+        Long noteId = deleteNoteReqVO.getId();
+
+        // 逻辑删除
+        NoteDO noteDO = NoteDO.builder()
+                .id(noteId)
+                .status(NoteStatusEnum.DELETED.getCode())
+                .updateTime(LocalDateTime.now())
+                .build();
+            
+        int count = noteDOMapper.updateByPrimaryKeySelective(noteDO);
+
+        if (count == 0) {
+            throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
+        }
+
+            // 删除缓存
+        String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(noteDetailKey);
+
+        // 同步发送广播模式 MQ，将所有实例中的本地缓存都删除掉
+        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
+        log.info("====> MQ：删除笔记本地缓存发送成功...");
+
+        return Response.success();
+    }
+
+    @Override
+    public Response<?> visibleOnlyMe(UpdateNoteVisibleOnlyMeReqVO updateNoteVisibleOnlyMeReqVO) {
+        Long noteId = updateNoteVisibleOnlyMeReqVO.getId();
+
+        // 构建更新实体类
+        NoteDO noteDO = NoteDO.builder()
+                    .id(noteId)
+                    .visible(NoteVisibleEnum.PRIVATE.getCode())
+                    .updateTime(LocalDateTime.now())
+                    .build();
+
+        int count = noteDOMapper.updateVisibleOnlyMe(noteDO);
+
+        if (count == 0) {
+            throw new BizException(ResponseCodeEnum.NOTE_CANT_VISIBLE_ONLY_ME);
+        }
+
+        // 删除 redis 缓存
+        String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(noteDetailKey);
+
+        // 同步发送广播模式 MQ，将所有实例中的本地缓存都删除掉
+        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
+        log.info("====> MQ：删除笔记本地缓存发送成功...");
+
+        return Response.success();
+    }
+    
     /**
      * 删除本地笔记缓存
      * @param noteId
