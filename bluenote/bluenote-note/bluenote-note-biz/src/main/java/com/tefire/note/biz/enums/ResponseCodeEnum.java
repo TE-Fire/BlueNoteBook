@@ -23,7 +23,7 @@ public enum ResponseCodeEnum implements BaseExceptionInterface {
     NOTE_PRIVATE("NOTE-20003", "作者已将该笔记设置为仅自己可见"),
     NOTE_UPDATE_FAIL("NOTE-20004", "笔记更新失败"),
     NOTE_CANT_VISIBLE_ONLY_ME("NOTE-20006", "此笔记无法修改为仅自己可见"),
-    // ----------- 业务异常状态码 -----------
+    NOTE_CANT_OPERATE("NOTE-20007", "您无法操作该笔记"),
     ;
 
     // 异常码

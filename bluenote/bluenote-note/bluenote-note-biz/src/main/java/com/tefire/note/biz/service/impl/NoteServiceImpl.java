@@ -36,6 +36,7 @@ import com.tefire.note.biz.model.vo.DeleteNoteReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
+import com.tefire.note.biz.model.vo.TopNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteVisibleOnlyMeReqVO;
 import com.tefire.note.biz.rpc.DistributedIdGeneratorRpcService;
@@ -439,9 +440,6 @@ public class NoteServiceImpl implements NoteService {
             log.error("==> 提交异步任务失败，noteId={}", noteId, e);
         }
 
-
-        
-
         return Response.success();
     }
 
@@ -462,13 +460,7 @@ public class NoteServiceImpl implements NoteService {
             throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
         }
 
-            // 删除缓存
-        String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
-        redisTemplate.delete(noteDetailKey);
-
-        // 同步发送广播模式 MQ，将所有实例中的本地缓存都删除掉
-        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
-        log.info("====> MQ：删除笔记本地缓存发送成功...");
+        deleteNoteCache(noteId);
 
         return Response.success();
     }
@@ -490,17 +482,35 @@ public class NoteServiceImpl implements NoteService {
             throw new BizException(ResponseCodeEnum.NOTE_CANT_VISIBLE_ONLY_ME);
         }
 
-        // 删除 redis 缓存
-        String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
-        redisTemplate.delete(noteDetailKey);
-
-        // 同步发送广播模式 MQ，将所有实例中的本地缓存都删除掉
-        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
-        log.info("====> MQ：删除笔记本地缓存发送成功...");
+        deleteNoteCache(noteId);
 
         return Response.success();
     }
     
+    @Override
+    public Response<?> topNote(TopNoteReqVO topNoteReqVO) {
+        Long noteId = topNoteReqVO.getId();
+        Boolean isTop = topNoteReqVO.getIsTop();
+
+        Long currUserId = LoginUserContextHolder.getUserId();
+        // 构建置顶/取消置顶 DO 实体类
+        NoteDO noteDO = NoteDO.builder()
+                .id(noteId)
+                .isTop(isTop)
+                .updateTime(LocalDateTime.now())
+                .creatorId(currUserId) // 只有笔记所有者，才能置顶/取消置顶笔记
+                .build();
+
+        int count = noteDOMapper.updateIsTop(noteDO);
+
+        if (count == 0) {
+            throw new BizException(ResponseCodeEnum.NOTE_CANT_OPERATE);
+        }
+
+        deleteNoteCache(noteId);
+
+        return Response.success();
+    }
     /**
      * 删除本地笔记缓存
      * @param noteId
@@ -533,5 +543,17 @@ public class NoteServiceImpl implements NoteService {
             Integer visible = findNoteDetailRspVO.getVisible();
             checkNoteVisible(visible, userId, findNoteDetailRspVO.getCreatorId());
         }
+    }
+
+    /**
+     * 删除 redis 和 本地缓存 中的笔记数据
+     * @param noteId
+     */
+    private void deleteNoteCache(Long noteId) {
+        String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(noteDetailKey);
+        
+        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
+        log.info("====> MQ：删除笔记本地缓存发送成功...");
     }
 }
