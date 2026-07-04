@@ -8,4 +8,5 @@ D:\BlueNoteBook\bluenote\bluenote-framework\bluenote-common\src\main\java\com\te
 D:\BlueNoteBook\bluenote\bluenote-framework\bluenote-common\src\main\java\com\tefire\framework\common\exception\BizException.java
 D:\BlueNoteBook\bluenote\bluenote-framework\bluenote-common\src\main\java\com\tefire\framework\common\constant\ResponseCodeEnum.java
 D:\BlueNoteBook\bluenote\bluenote-framework\bluenote-common\src\main\java\com\tefire\framework\common\enums\DeletedEnum.java
+D:\BlueNoteBook\bluenote\bluenote-framework\bluenote-common\src\main\java\com\tefire\framework\common\util\ParamUtils.java
 D:\BlueNoteBook\bluenote\bluenote-framework\bluenote-common\src\main\java\com\tefire\framework\common\validator\PhoneNumberValidator.java

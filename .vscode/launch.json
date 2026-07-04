@@ -70,13 +70,44 @@
         },
         {
             "type": "java",
-            "name": "Spring Boot-Main<bluenote-note-biz>",
+            "name": "Spring Boot-Main<bluenote-note-biz> #1 (8086)",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "mainClass": "com.tefire.BluenoteNoteBizApplication",
             "projectName": "bluenote-note-biz",
-            "args": "",
+            "args": "--server.port=8086",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-Main<bluenote-note-biz> #2 (8087)",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tefire.BluenoteNoteBizApplication",
+            "projectName": "bluenote-note-biz",
+            "args": "--server.port=8087",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-Main<bluenote-note-biz> #3 (8088)",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tefire.BluenoteNoteBizApplication",
+            "projectName": "bluenote-note-biz",
+            "args": "--server.port=8088",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Note-Biz x3 (多实例测试)",
+            "configurations": [
+                "Spring Boot-Main<bluenote-note-biz> #1 (8086)",
+                "Spring Boot-Main<bluenote-note-biz> #2 (8087)",
+                "Spring Boot-Main<bluenote-note-biz> #3 (8088)"
+            ],
+            "stopAll": true
         }
     ]
 }

@@ -12,11 +12,15 @@
     <module>bluenote-auth</module>
     <module>bluenote-framework</module>
     <module>bluenote-gateway</module>
+    <module>bluenote-oss</module>
+    <module>bluenote-user</module>
+    <module>bluenote-kv</module>
+    <module>bluenote-distributed-id-generator</module>
+    <module>bluenote-note</module>
   </modules>
   <properties>
-    <java.version>21</java.version>
-    <maven.compiler.source>${java.version}</maven.compiler.source>
-    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+    <minio.version>8.2.1</minio.version>
+    <feign-form.version>3.8.0</feign-form.version>
     <hutool.version>5.8.26</hutool.version>
     <mysql-connector-java.version>8.0.29</mysql-connector-java.version>
     <jackson.version>2.16.1</jackson.version>
@@ -25,15 +29,20 @@
     <spring-boot.version>3.2.5</spring-boot.version>
     <flatten-maven-plugin.version>1.5.0</flatten-maven-plugin.version>
     <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
-    <revision>0.0.1-SNAPSHOT</revision>
     <spring-cloud.version>2023.0.0</spring-cloud.version>
-    <lombok.version>1.18.30</lombok.version>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
     <mybatis-generator-maven-plugin.version>1.3.5</mybatis-generator-maven-plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <commons-lang3.version>3.12.0</commons-lang3.version>
-    <druid.version>1.2.23</druid.version>
     <dypnsapi.version>2.0.0</dypnsapi.version>
+    <caffeine.version>3.1.8</caffeine.version>
+    <rocketmq.version>2.3.3</rocketmq.version>
+    <java.version>21</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+    <revision>0.0.1-SNAPSHOT</revision>
+    <lombok.version>1.18.30</lombok.version>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <druid.version>1.2.23</druid.version>
     <transmittable-thread-local.version>2.14.2</transmittable-thread-local.version>
   </properties>
   <dependencyManagement>
@@ -148,6 +157,51 @@
         <groupId>com.alibaba</groupId>
         <artifactId>transmittable-thread-local</artifactId>
         <version>${transmittable-thread-local.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.minio</groupId>
+        <artifactId>minio</artifactId>
+        <version>${minio.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tefire</groupId>
+        <artifactId>bluenote-oss-api</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tefire</groupId>
+        <artifactId>bluenote-user-api</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.openfeign.form</groupId>
+        <artifactId>feign-form</artifactId>
+        <version>${feign-form.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tefire</groupId>
+        <artifactId>bluenote-user-api</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tefire</groupId>
+        <artifactId>bluenote-kv-api</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tefire</groupId>
+        <artifactId>bluenote-distributed-id-generator-api</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.ben-manes.caffeine</groupId>
+        <artifactId>caffeine</artifactId>
+        <version>${caffeine.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.rocketmq</groupId>
+        <artifactId>rocketmq-spring-boot-starter</artifactId>
+        <version>${rocketmq.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

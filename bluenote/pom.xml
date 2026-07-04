@@ -59,6 +59,8 @@
         <minio.version>8.2.1</minio.version>
         <feign-form.version>3.8.0</feign-form.version>
         <caffeine.version>3.1.8</caffeine.version>
+        <rocketmq.version>2.3.3</rocketmq.version>
+        <rocketmq-client.version>5.3.1</rocketmq-client.version>
     </properties>
 
     <!-- 统一依赖管理 -->
@@ -261,6 +263,20 @@
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
                 <version>${caffeine.version}</version>
+            </dependency>
+
+             <!-- Rocket MQ -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${rocketmq.version}</version>
+            </dependency>
+
+            <!-- 覆盖 spring-cloud-alibaba BOM 的 rocketmq-client 版本，确保与 rocketmq-spring-boot-starter 兼容 -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-client</artifactId>
+                <version>${rocketmq-client.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
