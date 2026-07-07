@@ -97,7 +97,17 @@
             "projectName": "bluenote-note-biz",
             "args": "--server.port=8088",
             "envFile": "${workspaceFolder}/.env"
-        }
+        },
+        {
+        "type": "java",
+        "name": "Spring Boot-Main<bluenote-user-relation-biz>",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "mainClass": "com.tefire.BlueNoteUserRelationBizApplication",
+        "projectName": "bluenote-user-relation-biz",
+        "args": "",
+        "envFile": "${workspaceFolder}/.env"
+        },
     ],
     "compounds": [
         {

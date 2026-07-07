@@ -1,0 +1,30 @@
+package com.tefire.relation.enums;
+
+import com.tefire.framework.common.exception.BaseExceptionInterface;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/*
+ * @Author: TE-Fire 3037749727@qq.com
+ * @Date: 2026-07-07 09:26:06
+ * @Description: 异常响应状态码
+ */
+@Getter
+@AllArgsConstructor
+public enum ResponseCodeEnum implements BaseExceptionInterface {
+
+    // ----------- 通用异常状态码 -----------
+    SYSTEM_ERROR("RELATION-10000", "出错啦，后台小哥正在努力修复中..."),
+    PARAM_NOT_VALID("RELATION-10001", "参数错误"),
+
+    // ----------- 业务异常状态码 -----------
+    ;
+
+    // 异常码
+    private final String errorCode;
+    // 错误信息
+    private final String errorMessage;
+
+}
+
