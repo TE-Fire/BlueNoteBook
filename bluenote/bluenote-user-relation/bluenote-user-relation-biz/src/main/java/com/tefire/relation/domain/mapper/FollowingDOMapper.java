@@ -1,5 +1,7 @@
 package com.tefire.relation.domain.mapper;
 
+import java.util.List;
+
 import com.tefire.relation.domain.dataobject.FollowingDO;
 
 public interface FollowingDOMapper {
@@ -14,4 +16,6 @@ public interface FollowingDOMapper {
     int updateByPrimaryKeySelective(FollowingDO record);
 
     int updateByPrimaryKey(FollowingDO record);
+
+    List<FollowingDO> selectByUserId(Long userId);
 }
