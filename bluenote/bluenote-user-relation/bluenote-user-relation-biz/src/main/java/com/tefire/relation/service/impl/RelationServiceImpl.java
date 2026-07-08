@@ -68,7 +68,7 @@ public class RelationServiceImpl implements RelationService {
         }
 
         // 关注的用户是否存在
-        FindUserByIdRspDTO findUserByIdRspDTO = userRpcService.findById(userId);
+        FindUserByIdRspDTO findUserByIdRspDTO = userRpcService.findById(followUserId);
         if (Objects.isNull(findUserByIdRspDTO)) {
             throw new BizException(ResponseCodeEnum.FOLLOW_USER_NOT_EXISTED);
         }
@@ -174,7 +174,8 @@ public class RelationServiceImpl implements RelationService {
                 return true;
             }
             default -> {
-                throw new RuntimeException("未知的 Lua 返回结果");
+                log.debug("ZKEY 不存在");
+                return false;
             }
         }
     }
