@@ -9,3 +9,7 @@ mybatis:
   # MyBatis xml 配置文件路径
   mapper-locations: classpath:/mapper/**/*.xml
   type-aliases-package: com.tefire.relation.domain.dataobject
+
+mq-consumer: # MQ 消费者
+  follow-unfollow: # 关注、取关
+    rate-limit: 100 # 每秒限流阈值

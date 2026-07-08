@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.tefire.framework.common.util.JsonUtils;
+import com.tefire.relation.config.FollowUnfollowMqConsumerRateLimitConfig;
 import com.tefire.relation.constant.MQConstants;
 import com.tefire.relation.domain.dataobject.FansDO;
 import com.tefire.relation.domain.dataobject.FollowingDO;
@@ -42,8 +43,14 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
     @Resource
     private TransactionTemplate transactionTemplate;
 
+    @Resource
+    private FollowUnfollowMqConsumerRateLimitConfig rateLimitConfig;
+
     @Override
     public void onMessage(Message message) {
+        // 流量削峰：通过获取令牌，如果没有令牌可用，将阻塞，直到获得
+        rateLimitConfig.rateLimiter();
+        
         String bodyJsonStr = new String(message.getBody());
         String tags = message.getTags();
 
