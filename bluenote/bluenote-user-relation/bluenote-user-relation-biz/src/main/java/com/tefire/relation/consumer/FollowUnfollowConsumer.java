@@ -2,12 +2,18 @@ package com.tefire.relation.consumer;
 
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.tefire.framework.common.util.DateUtils;
 import com.tefire.framework.common.util.JsonUtils;
 import com.tefire.relation.config.FollowUnfollowMqConsumerRateLimitConfig;
 import com.tefire.relation.constant.MQConstants;
+import com.tefire.relation.constant.RedisKeyConstants;
 import com.tefire.relation.domain.dataobject.FansDO;
 import com.tefire.relation.domain.dataobject.FollowingDO;
 import com.tefire.relation.domain.mapper.FansDOMapper;
@@ -18,6 +24,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Objects;
 
 import org.apache.rocketmq.common.message.Message;
@@ -45,6 +52,9 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
 
     @Resource
     private FollowUnfollowMqConsumerRateLimitConfig rateLimitConfig;
+
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public void onMessage(Message message) {
@@ -104,6 +114,16 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
             }
         }));
         log.info("## 数据库添加记录结果：{}", isSuccess);
-        // TODO: 更新 Redis 中被关注用户的 ZSet 粉丝列表
+        // 更新 Redis 中被关注用户的 ZSet 粉丝列表
+        if (isSuccess) {
+            DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+            script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/follow_check_and_update_fans_zset.lua")));
+            script.setResultType(Long.class);
+
+            long timestamp = DateUtils.localDateTime2Timestamp(createTime);
+
+            String userFansKey = RedisKeyConstants.buildUserFansKey(userId);
+            redisTemplate.execute(script, Collections.singletonList(userFansKey), userId, timestamp);
+        }
     }
 }
