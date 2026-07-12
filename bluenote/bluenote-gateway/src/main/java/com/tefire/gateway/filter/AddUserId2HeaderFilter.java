@@ -35,7 +35,7 @@ public class AddUserId2HeaderFilter implements GlobalFilter {
         log.info("## 当前登录的用户 ID: {}", userId);
 
         Long finalUserId = userId;
-      ServerWebExchange newExchange = exchange.mutate()
+        ServerWebExchange newExchange = exchange.mutate()
                   .request(builder -> builder.header(GlobalConstants.USER_ID, String.valueOf(finalUserId))) // 将用户id设置到请求头
                   .build();
 		// 将请求传递给过滤器链中的下一个过滤器进行处理。没有对请求进行任何修改。
