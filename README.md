@@ -54,15 +54,15 @@ BlueNote（小蓝书）是一个内容分享社交平台，用户可以发布图
 │  • 请求路由转发 • 统一认证鉴权（Sa-Token） • 全局异常处理       │
 └─────────────────────────────────────────────────────────────────┘
                               │
-         ┌────────────────────┼────────────────────┐
-         ▼                    ▼                    ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ bluenote-auth   │  │ bluenote-user   │  │ bluenote-note   │
-│   认证服务       │  │   用户服务       │  │   笔记服务       │
-│  • 登录注册     │  │  • 用户管理     │  │  • 笔记CRUD     │
-│  • 验证码       │  │  • 权限管理     │  │  • 话题管理     │
-│  • Sa-Token     │  │  • 角色同步     │  │  • 缓存策略     │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
+         ┌────────────────────┼────────────────────┼────────────────────┐
+         ▼                    ▼                    ▼                    ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│ bluenote-auth   │  │ bluenote-user   │  │ bluenote-note   │  │bluenote-user-rel│
+│   认证服务       │  │   用户服务       │  │   笔记服务       │  │   用户关系服务    │
+│  • 登录注册     │  │  • 用户管理     │  │  • 笔记CRUD     │  │  • 关注/取关     │
+│  • 验证码       │  │  • 权限管理     │  │  • 话题管理     │  │  • 粉丝列表     │
+│  • Sa-Token     │  │  • 角色同步     │  │  • 缓存策略     │  │  • Redis ZSet   │
+└─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
          │                    │                    │
          ▼                    ▼                    ▼
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
@@ -84,9 +84,10 @@ BlueNote（小蓝书）是一个内容分享社交平台，用户可以发布图
 
 | 模块 | 职责 | 端口 |
 |------|------|------|
-| `bluenote-gateway` | API网关，路由转发，统一鉴权 | 8080 |
+| `bluenote-gateway` | API网关，路由转发，统一鉴权 | 8000 |
 | `bluenote-auth` | 用户认证，登录注册，验证码 | 8081 |
 | `bluenote-user` | 用户管理，角色权限，信息更新 | 8082 |
+| `bluenote-user-relation` | 用户关系，关注/取关，粉丝列表 | 8087 |
 | `bluenote-note` | 笔记发布，内容管理，话题管理 | 8086 |
 | `bluenote-oss` | 文件存储，图片/视频上传 | 8083 |
 | `bluenote-kv` | 笔记内容存储，基于Cassandra | 8084 |
@@ -119,7 +120,16 @@ BlueNote（小蓝书）是一个内容分享社交平台，用户可以发布图
 - **权限管理**：角色-权限数据同步到Redis
 - **Feign调用**：提供用户信息查询接口给其他服务
 
-### 4.3 笔记模块（bluenote-note）
+### 4.3 用户关系模块（bluenote-user-relation）
+
+- **关注功能**：关注用户，Redis ZSet存储关注列表
+- **取关功能**：取消关注，同步更新Redis和数据库
+- **关注列表**：分页查询用户关注列表
+- **粉丝列表**：分页查询用户粉丝列表
+- **Lua脚本**：原子性操作保证数据一致性
+- **MQ异步**：异步写入数据库，提升接口响应速度
+
+### 4.4 笔记模块（bluenote-note）
 
 - **笔记发布**：图文笔记、视频笔记发布
 - **笔记更新**：内容更新，KV存储同步
@@ -128,7 +138,7 @@ BlueNote（小蓝书）是一个内容分享社交平台，用户可以发布图
 - **消息广播**：RocketMQ广播模式清除本地缓存
 - **延迟双删**：解决缓存一致性问题
 
-### 4.4 对象存储模块（bluenote-oss）
+### 4.5 对象存储模块（bluenote-oss）
 
 - **文件上传**：图片、视频上传到MinIO
 - **Feign接口**：提供文件上传API供其他服务调用
@@ -206,7 +216,11 @@ mvn spring-boot:run
 cd bluenote/bluenote-note/bluenote-note-biz
 mvn spring-boot:run
 
-# 8. 启动网关服务（最后启动）
+# 8. 启动用户关系服务
+cd bluenote/bluenote-user-relation/bluenote-user-relation-biz
+mvn spring-boot:run
+
+# 9. 启动网关服务（最后启动）
 cd bluenote/bluenote-gateway
 mvn spring-boot:run
 ```
@@ -256,6 +270,9 @@ bluenote/
 ├── bluenote-distributed-id-generator/  # 分布式ID服务
 │   ├── bluenote-distributed-id-generator-api/
 │   └── bluenote-distributed-id-generator-biz/
+├── bluenote-user-relation/            # 用户关系服务
+│   ├── bluenote-user-relation-api/    # API接口
+│   └── bluenote-user-relation-biz/    # 业务实现
 ├── bluenote-framework/              # 框架层
 │   ├── bluenote-common/             # 通用组件
 │   ├── bluenote-spring-boot-starter-biz-context/
@@ -347,7 +364,8 @@ bluenote/
 | bluenote-oss | ✅ 已完成 | 100% |
 | bluenote-kv | ✅ 已完成 | 100% |
 | bluenote-distributed-id-generator | ✅ 已完成 | 100% |
-| bluenote-note | 🔄 开发中 | 80% |
+| bluenote-note | ✅ 已完成 | 100% |
+| bluenote-user-relation | ✅ 已完成 | 100% |
 | bluenote-framework | ✅ 已完成 | 100% |
 
 ---

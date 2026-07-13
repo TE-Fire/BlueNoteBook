@@ -30,6 +30,13 @@ spring:
           predicates:
             - Path=/relation/**
           filters:
+            - StripPrefix=1
+
+        - id: oss
+          uri: lb://bluenote-oss
+          predicates:
+            - Path=/file/**
+          filters:
             - StripPrefix=1        
 
        

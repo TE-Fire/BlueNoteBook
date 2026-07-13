@@ -1,196 +1,18 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "BlueNote 认证服务 API",
-    "description": "BlueNote 认证服务（Auth Module）的 RESTful API 接口文档",
+    "title": "BlueNote 微服务 API",
+    "description": "BlueNote 小蓝书微服务架构项目的 RESTful API 接口文档，统一通过网关层访问",
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://localhost:8080",
-      "description": "本地开发环境"
+      "url": "http://localhost:8000",
+      "description": "网关入口（本地开发环境），端口配置来自 bluenote-gateway application.yml"
     }
   ],
   "paths": {
-    "/user/update": {
-      "post": {
-        "summary": "用户信息修改",
-        "description": "用户信息修改接口",
-        "tags": ["用户服务"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateUserInfoReqVO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseObject"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/file/upload": {
-      "post": {
-        "summary": "上传文件",
-        "description": "文件上传接口，支持上传图片、文档等文件",
-        "tags": ["文件服务"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/UploadFileReqVO"
-              },
-              "examples": {
-                "上传图片": {
-                  "value": {
-                    "file": "<file>"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseObject"
-                },
-                "examples": {
-                  "成功": {
-                    "value": {
-                      "success": true,
-                      "message": "文件上传成功",
-                      "errorCode": null,
-                      "data": {
-                        "url": "https://oss.example.com/2026/06/25/test.jpg",
-                        "fileName": "test.jpg",
-                        "fileSize": 102400
-                      }
-                    }
-                  },
-                  "失败": {
-                    "value": {
-                      "success": false,
-                      "message": "文件不能为空",
-                      "errorCode": "OSS-10001",
-                      "data": null
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user/password/update": {
-      "post": {
-        "summary": "修改密码",
-        "description": "用户修改密码接口",
-        "tags": ["用户认证"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePasswordReqVO"
-              },
-              "examples": {
-                "修改密码": {
-                  "value": {
-                    "newPassword": "123456"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseObject"
-                },
-                "examples": {
-                  "成功": {
-                    "value": {
-                      "success": true,
-                      "message": "密码修改成功",
-                      "errorCode": null,
-                      "data": null
-                    }
-                  },
-                  "失败": {
-                    "value": {
-                      "success": false,
-                      "message": "新密码不能为空",
-                      "errorCode": "AUTH-10001",
-                      "data": null
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user/logout": {
-      "post": {
-        "summary": "用户登出",
-        "description": "用户登出接口",
-        "tags": ["用户认证"],
-        "responses": {
-          "200": {
-            "description": "成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseObject"
-                },
-                "examples": {
-                  "成功": {
-                    "value": {
-                      "success": true,
-                      "message": "登出成功",
-                      "errorCode": null,
-                      "data": null
-                    }
-                  },
-                  "失败": {
-                    "value": {
-                      "success": false,
-                      "message": "用户未登录",
-                      "errorCode": "AUTH-30001",
-                      "data": null
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user/login": {
+    "/auth/login": {
       "post": {
         "summary": "用户登录/注册",
         "description": "用户登录或注册接口，支持手机号验证码登录和账号密码登录两种方式",
@@ -255,7 +77,98 @@
         }
       }
     },
-    "/verification/code/send": {
+    "/auth/logout": {
+      "post": {
+        "summary": "用户登出",
+        "description": "用户登出接口，无需鉴权",
+        "tags": ["用户认证"],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                },
+                "examples": {
+                  "成功": {
+                    "value": {
+                      "success": true,
+                      "message": "登出成功",
+                      "errorCode": null,
+                      "data": null
+                    }
+                  },
+                  "失败": {
+                    "value": {
+                      "success": false,
+                      "message": "用户未登录",
+                      "errorCode": "AUTH-30001",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/password/update": {
+      "post": {
+        "summary": "修改密码（认证模块）",
+        "description": "用户修改密码接口",
+        "tags": ["用户认证"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthUpdatePasswordReqVO"
+              },
+              "examples": {
+                "修改密码": {
+                  "value": {
+                    "newPassword": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                },
+                "examples": {
+                  "成功": {
+                    "value": {
+                      "success": true,
+                      "message": "密码修改成功",
+                      "errorCode": null,
+                      "data": null
+                    }
+                  },
+                  "失败": {
+                    "value": {
+                      "success": false,
+                      "message": "新密码不能为空",
+                      "errorCode": "AUTH-10001",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/verification/code/send": {
       "post": {
         "summary": "发送短信验证码",
         "description": "发送短信验证码到指定手机号",
@@ -308,49 +221,532 @@
           }
         }
       }
+    },
+    "/user/user/update": {
+      "post": {
+        "summary": "用户信息修改",
+        "description": "用户信息修改接口，支持昵称、头像、小蓝书号、性别、生日、个人简介、背景图",
+        "tags": ["用户服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserInfoReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/user/password/update": {
+      "post": {
+        "summary": "密码更新（用户模块）",
+        "description": "用户密码更新接口",
+        "tags": ["用户服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdatePasswordReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/user/findById": {
+      "post": {
+        "summary": "查询用户信息",
+        "description": "根据用户ID查询用户信息",
+        "tags": ["用户服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindUserByIdReqDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseFindUserById"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/user/findByIds": {
+      "post": {
+        "summary": "批量查询用户信息",
+        "description": "批量根据用户ID查询用户信息",
+        "tags": ["用户服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindUsersByIdsReqDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseFindUserByIdList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/user/findByPhone": {
+      "post": {
+        "summary": "手机号查询用户信息",
+        "description": "根据手机号查询用户信息",
+        "tags": ["用户服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindUserByPhoneReqDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseFindUserByPhone"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/user/register": {
+      "post": {
+        "summary": "用户注册",
+        "description": "用户注册接口",
+        "tags": ["用户服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUserReqDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseLong"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/file/file/upload": {
+      "post": {
+        "summary": "上传文件",
+        "description": "文件上传接口，支持上传图片、文档等文件，无需鉴权",
+        "tags": ["文件服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadFileReqVO"
+              },
+              "examples": {
+                "上传图片": {
+                  "value": {
+                    "file": "<file>"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                },
+                "examples": {
+                  "成功": {
+                    "value": {
+                      "success": true,
+                      "message": "文件上传成功",
+                      "errorCode": null,
+                      "data": {
+                        "url": "https://oss.example.com/2026/06/25/test.jpg",
+                        "fileName": "test.jpg",
+                        "fileSize": 102400
+                      }
+                    }
+                  },
+                  "失败": {
+                    "value": {
+                      "success": false,
+                      "message": "文件不能为空",
+                      "errorCode": "OSS-10001",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/note/note/publish": {
+      "post": {
+        "summary": "笔记发布",
+        "description": "发布新笔记",
+        "tags": ["笔记服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishNoteReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/note/note/detail": {
+      "post": {
+        "summary": "笔记详情",
+        "description": "查询笔记详情",
+        "tags": ["笔记服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindNoteDetailReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseFindNoteDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/note/note/update": {
+      "post": {
+        "summary": "笔记修改",
+        "description": "修改笔记内容",
+        "tags": ["笔记服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNoteReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/note/note/delete": {
+      "post": {
+        "summary": "删除笔记",
+        "description": "删除笔记",
+        "tags": ["笔记服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteNoteReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/note/note/visible/onlyme": {
+      "post": {
+        "summary": "笔记仅对自己可见",
+        "description": "设置笔记仅对自己可见",
+        "tags": ["笔记服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNoteVisibleOnlyMeReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/note/note/top": {
+      "post": {
+        "summary": "置顶/取消置顶笔记",
+        "description": "置顶或取消置顶笔记",
+        "tags": ["笔记服务"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopNoteReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/relation/relation/follow": {
+      "post": {
+        "summary": "关注用户",
+        "description": "关注指定用户",
+        "tags": ["用户关系"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowUserReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/relation/relation/unfollow": {
+      "post": {
+        "summary": "取关用户",
+        "description": "取消关注指定用户",
+        "tags": ["用户关系"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnfollowUserReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/relation/relation/following/list": {
+      "post": {
+        "summary": "查询用户关注列表",
+        "description": "分页查询用户关注列表",
+        "tags": ["用户关系"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindFollowingListReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseFollowing"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/relation/relation/fans/list": {
+      "post": {
+        "summary": "查询用户粉丝列表",
+        "description": "分页查询用户粉丝列表",
+        "tags": ["用户关系"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindFansListReqVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseFans"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
-      "UpdateUserInfoReqVO": {
-        "type": "object",
-        "description": "用户信息修改请求入参",
-        "properties": {
-          "nickname": {
-            "type": "string",
-            "description": "昵称"
-          },
-          "avatar": {
-            "type": "string",
-            "format": "binary",
-            "description": "头像文件"
-          }
-        }
-      },
-      "UploadFileReqVO": {
-        "type": "object",
-        "description": "文件上传请求入参",
-        "properties": {
-          "file": {
-            "type": "string",
-            "format": "binary",
-            "description": "上传的文件"
-          }
-        },
-        "required": ["file"]
-      },
-      "UpdatePasswordReqVO": {
-        "type": "object",
-        "description": "修改密码请求入参",
-        "properties": {
-          "newPassword": {
-            "type": "string",
-            "description": "新密码",
-            "example": "123456"
-          }
-        },
-        "required": ["newPassword"]
-      },
       "UserLoginReqVO": {
         "type": "object",
         "description": "登录请求入参",
@@ -378,6 +774,18 @@
         },
         "required": ["phone", "type"]
       },
+      "AuthUpdatePasswordReqVO": {
+        "type": "object",
+        "description": "认证模块修改密码请求入参",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "description": "新密码",
+            "example": "123456"
+          }
+        },
+        "required": ["newPassword"]
+      },
       "SendVerificationCodeReqVO": {
         "type": "object",
         "description": "获取验证码接口请求体",
@@ -389,6 +797,401 @@
           }
         },
         "required": ["phone"]
+      },
+      "UpdateUserInfoReqVO": {
+        "type": "object",
+        "description": "用户信息修改请求入参",
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "description": "昵称"
+          },
+          "avatar": {
+            "type": "string",
+            "format": "binary",
+            "description": "头像文件"
+          },
+          "xiaohashuId": {
+            "type": "string",
+            "description": "小蓝书号"
+          },
+          "sex": {
+            "type": "integer",
+            "description": "性别"
+          },
+          "birthday": {
+            "type": "string",
+            "format": "date",
+            "description": "生日"
+          },
+          "introduction": {
+            "type": "string",
+            "description": "个人简介"
+          },
+          "backgroundImg": {
+            "type": "string",
+            "format": "binary",
+            "description": "背景图"
+          }
+        }
+      },
+      "UserUpdatePasswordReqVO": {
+        "type": "object",
+        "description": "用户模块密码更新请求入参",
+        "properties": {
+          "encodePassword": {
+            "type": "string",
+            "description": "加密后的密码"
+          }
+        },
+        "required": ["encodePassword"]
+      },
+      "FindUserByIdReqDTO": {
+        "type": "object",
+        "description": "根据ID查询用户请求入参",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID",
+            "example": 1
+          }
+        },
+        "required": ["id"]
+      },
+      "FindUsersByIdsReqDTO": {
+        "type": "object",
+        "description": "批量查询用户请求入参",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID列表"
+          }
+        },
+        "required": ["ids"]
+      },
+      "FindUserByPhoneReqDTO": {
+        "type": "object",
+        "description": "根据手机号查询用户请求入参",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "手机号",
+            "example": "13800138000"
+          }
+        },
+        "required": ["phone"]
+      },
+      "RegisterUserReqDTO": {
+        "type": "object",
+        "description": "用户注册请求入参",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "手机号",
+            "example": "13800138000"
+          }
+        },
+        "required": ["phone"]
+      },
+      "UploadFileReqVO": {
+        "type": "object",
+        "description": "文件上传请求入参",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "上传的文件"
+          }
+        },
+        "required": ["file"]
+      },
+      "PublishNoteReqVO": {
+        "type": "object",
+        "description": "笔记发布请求入参",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "笔记内容"
+          },
+          "title": {
+            "type": "string",
+            "description": "笔记标题"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "图片URL列表"
+          },
+          "topicIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "话题ID列表"
+          }
+        },
+        "required": ["content"]
+      },
+      "FindNoteDetailReqVO": {
+        "type": "object",
+        "description": "查询笔记详情请求入参",
+        "properties": {
+          "noteId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "笔记ID",
+            "example": 1
+          }
+        },
+        "required": ["noteId"]
+      },
+      "UpdateNoteReqVO": {
+        "type": "object",
+        "description": "修改笔记请求入参",
+        "properties": {
+          "noteId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "笔记ID",
+            "example": 1
+          },
+          "content": {
+            "type": "string",
+            "description": "笔记内容"
+          },
+          "title": {
+            "type": "string",
+            "description": "笔记标题"
+          }
+        },
+        "required": ["noteId"]
+      },
+      "DeleteNoteReqVO": {
+        "type": "object",
+        "description": "删除笔记请求入参",
+        "properties": {
+          "noteId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "笔记ID",
+            "example": 1
+          }
+        },
+        "required": ["noteId"]
+      },
+      "UpdateNoteVisibleOnlyMeReqVO": {
+        "type": "object",
+        "description": "设置笔记仅自己可见请求入参",
+        "properties": {
+          "noteId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "笔记ID",
+            "example": 1
+          },
+          "visibleOnlyMe": {
+            "type": "boolean",
+            "description": "是否仅自己可见"
+          }
+        },
+        "required": ["noteId", "visibleOnlyMe"]
+      },
+      "TopNoteReqVO": {
+        "type": "object",
+        "description": "置顶笔记请求入参",
+        "properties": {
+          "noteId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "笔记ID",
+            "example": 1
+          },
+          "isTop": {
+            "type": "boolean",
+            "description": "是否置顶"
+          }
+        },
+        "required": ["noteId", "isTop"]
+      },
+      "FollowUserReqVO": {
+        "type": "object",
+        "description": "关注用户请求入参",
+        "properties": {
+          "followUserId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "被关注用户ID",
+            "example": 2
+          }
+        },
+        "required": ["followUserId"]
+      },
+      "UnfollowUserReqVO": {
+        "type": "object",
+        "description": "取关用户请求入参",
+        "properties": {
+          "unfollowUserId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "被取关用户ID",
+            "example": 2
+          }
+        },
+        "required": ["unfollowUserId"]
+      },
+      "FindFollowingListReqVO": {
+        "type": "object",
+        "description": "查询关注列表请求入参",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID",
+            "example": 1
+          },
+          "pageNo": {
+            "type": "integer",
+            "description": "页码",
+            "example": 1
+          }
+        },
+        "required": ["userId", "pageNo"]
+      },
+      "FindFansListReqVO": {
+        "type": "object",
+        "description": "查询粉丝列表请求入参",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID",
+            "example": 1
+          },
+          "pageNo": {
+            "type": "integer",
+            "description": "页码",
+            "example": 1
+          }
+        },
+        "required": ["userId", "pageNo"]
+      },
+      "FindUserByIdRspDTO": {
+        "type": "object",
+        "description": "用户信息响应DTO",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID"
+          },
+          "nickName": {
+            "type": "string",
+            "description": "昵称"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "头像URL"
+          },
+          "introduction": {
+            "type": "string",
+            "description": "个人简介"
+          }
+        }
+      },
+      "FindUserByPhoneRspDTO": {
+        "type": "object",
+        "description": "手机号查询用户响应DTO",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码"
+          }
+        }
+      },
+      "FindFollowingUserRspVO": {
+        "type": "object",
+        "description": "关注用户响应VO",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "头像URL"
+          },
+          "nickname": {
+            "type": "string",
+            "description": "昵称"
+          },
+          "introduction": {
+            "type": "string",
+            "description": "个人简介"
+          }
+        }
+      },
+      "FindFansUserRspVO": {
+        "type": "object",
+        "description": "粉丝用户响应VO",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "头像URL"
+          },
+          "nickname": {
+            "type": "string",
+            "description": "昵称"
+          },
+          "introduction": {
+            "type": "string",
+            "description": "个人简介"
+          }
+        }
+      },
+      "FindNoteDetailRspVO": {
+        "type": "object",
+        "description": "笔记详情响应VO",
+        "properties": {
+          "noteId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "笔记ID"
+          },
+          "content": {
+            "type": "string",
+            "description": "笔记内容"
+          },
+          "title": {
+            "type": "string",
+            "description": "笔记标题"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "图片URL列表"
+          }
+        }
       },
       "ResponseString": {
         "type": "object",
@@ -409,6 +1212,29 @@
           "data": {
             "type": "string",
             "description": "响应数据（Token）"
+          }
+        }
+      },
+      "ResponseLong": {
+        "type": "object",
+        "description": "通用响应体（Long类型）",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "异常码"
+          },
+          "data": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应数据（用户ID）"
           }
         }
       },
@@ -433,6 +1259,175 @@
             "description": "响应数据"
           }
         }
+      },
+      "ResponseFindUserById": {
+        "type": "object",
+        "description": "用户信息查询响应",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "异常码"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FindUserByIdRspDTO"
+          }
+        }
+      },
+      "ResponseFindUserByIdList": {
+        "type": "object",
+        "description": "批量用户信息查询响应",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "异常码"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FindUserByIdRspDTO"
+            }
+          }
+        }
+      },
+      "ResponseFindUserByPhone": {
+        "type": "object",
+        "description": "手机号查询用户响应",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "异常码"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FindUserByPhoneRspDTO"
+          }
+        }
+      },
+      "ResponseFindNoteDetail": {
+        "type": "object",
+        "description": "笔记详情查询响应",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "异常码"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FindNoteDetailRspVO"
+          }
+        }
+      },
+      "PageResponseFollowing": {
+        "type": "object",
+        "description": "关注列表分页响应",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "异常码"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FindFollowingUserRspVO"
+            }
+          },
+          "pageNo": {
+            "type": "integer",
+            "description": "当前页码"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int64",
+            "description": "总数据量"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数据量"
+          },
+          "totalPage": {
+            "type": "integer",
+            "description": "总页数"
+          }
+        }
+      },
+      "PageResponseFans": {
+        "type": "object",
+        "description": "粉丝列表分页响应",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "异常码"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FindFansUserRspVO"
+            }
+          },
+          "pageNo": {
+            "type": "integer",
+            "description": "当前页码"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int64",
+            "description": "总数据量"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数据量"
+          },
+          "totalPage": {
+            "type": "integer",
+            "description": "总页数"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -445,20 +1440,28 @@
   },
   "tags": [
     {
-      "name": "用户服务",
-      "description": "用户信息相关接口"
-    },
-    {
-      "name": "文件服务",
-      "description": "文件上传、下载相关接口"
-    },
-    {
       "name": "用户认证",
-      "description": "用户登录、注册相关接口"
+      "description": "用户登录、注册、登出、修改密码相关接口"
     },
     {
       "name": "验证码服务",
       "description": "短信验证码相关接口"
+    },
+    {
+      "name": "用户服务",
+      "description": "用户信息管理、注册、查询相关接口"
+    },
+    {
+      "name": "文件服务",
+      "description": "文件上传相关接口"
+    },
+    {
+      "name": "笔记服务",
+      "description": "笔记发布、管理相关接口"
+    },
+    {
+      "name": "用户关系",
+      "description": "关注、取关、粉丝列表相关接口"
     }
   ]
 }
