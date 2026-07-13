@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.tefire.framework.biz.context.holder.LoginUserContextHolder;
 import com.tefire.framework.common.exception.BizException;
+import com.tefire.framework.common.response.PageResponse;
 import com.tefire.framework.common.response.Response;
 import com.tefire.framework.common.util.DateUtils;
 import com.tefire.framework.common.util.JsonUtils;
@@ -29,6 +31,8 @@ import com.tefire.relation.enums.LuaResultEnum;
 import com.tefire.relation.enums.ResponseCodeEnum;
 import com.tefire.relation.model.dto.FollowUserMqDTO;
 import com.tefire.relation.model.dto.UnfollowUserMqDTO;
+import com.tefire.relation.model.vo.FindFollowingListReqVO;
+import com.tefire.relation.model.vo.FindFollowingUserRspVO;
 import com.tefire.relation.model.vo.FollowUserReqVO;
 import com.tefire.relation.model.vo.UnfollowUserReqVO;
 import com.tefire.relation.rpc.UserRpcService;
@@ -230,6 +234,66 @@ public class RelationServiceImpl implements RelationService {
         return Response.success();
     }
     
+    @Override
+    public PageResponse<FindFollowingUserRspVO> findFollowingList(FindFollowingListReqVO findFollowingListReqVO) {
+        Long userId = findFollowingListReqVO.getUserId();
+        Integer pageNo = findFollowingListReqVO.getPageNo();
+
+        // 先从 redis 中查询
+        String userFollowingKey = RedisKeyConstants.buildUserFollowingKey(userId);
+
+        // 查询目标用户关注列表 zset 的总大小
+        Long total = redisTemplate.opsForZSet().zCard(userFollowingKey);
+
+        // 返参
+        List<FindFollowingUserRspVO> findFollowingUserRspVOS = null;
+
+        if (total > 0) { // 缓存中有数据
+            // 每页展示 10 条数据
+            long limit = 10;
+            // 计算一共多少页
+            long totalPage = PageResponse.getTotalPage(total, limit);
+
+            // 请求页数超过总页数
+            if (pageNo > totalPage) return PageResponse.success(null, pageNo, total);
+
+            // 准备从 Redis 中查询 ZSet 分页数据
+            // 每页 10 个元素，计算偏移量
+            long offset = (pageNo - 1) * limit;
+
+            // 使用 ZREVRANGEBYSCORE 命令按 score 降序获取元素，同时使用 LIMIT 子句实现分页
+            // 注意：这里使用了 Double.POSITIVE_INFINITY 和 Double.NEGATIVE_INFINITY 作为分数范围
+            // 因为关注列表最多有 1000 个元素，这样可以确保获取到所有的元素
+            Set<Object> followingUserIdsSet = redisTemplate.opsForZSet()
+                .reverseRangeByScore(userFollowingKey, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, offset, limit);
+
+            if (CollUtil.isNotEmpty(followingUserIdsSet)) {
+                List<Long> userIds = followingUserIdsSet.stream().map(object -> Long.valueOf(object.toString())).toList();
+
+                // RPC: 批量查询用户信息
+                List<FindUserByIdRspDTO> findUserByIdRspDTOs = userRpcService.findByIds(userIds);
+
+                // 若不为空，DTO 转 VO
+                if (CollUtil.isNotEmpty(findUserByIdRspDTOs)) {
+                    findFollowingUserRspVOS = findUserByIdRspDTOs.stream()
+                            .map(dto -> FindFollowingUserRspVO.builder()
+                                    .userId(dto.getId())
+                                    .avatar(dto.getAvatar())
+                                    .nickname(dto.getNickName())
+                                    .introduction(dto.getIntroduction())
+                                    .build())
+                            .toList();
+                }
+            }
+        } else {
+            // TODO: 若 Redis 中没有数据，则从数据库查询
+            
+            // TODO: 异步将关注列表全量同步到 Redis
+        }
+
+        return PageResponse.success(findFollowingUserRspVOS, pageNo, total);
+    }
+
     /**
      * 构建 Lua 脚本参数
      *

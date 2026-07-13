@@ -1,8 +1,3 @@
-/*
- * @Author: TE-Fire 3037749727@qq.com
- * @Date: 2026-07-07 15:07:03
- * @Description: 
- */
 package com.tefire.relation.controller;
 
 import jakarta.annotation.Resource;
@@ -14,7 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tefire.framework.biz.operationlog.aspect.ApiOperationLog;
+import com.tefire.framework.common.response.PageResponse;
 import com.tefire.framework.common.response.Response;
+import com.tefire.relation.model.vo.FindFollowingListReqVO;
+import com.tefire.relation.model.vo.FindFollowingUserRspVO;
 import com.tefire.relation.model.vo.FollowUserReqVO;
 import com.tefire.relation.model.vo.UnfollowUserReqVO;
 import com.tefire.relation.service.RelationService;
@@ -42,6 +40,12 @@ public class RelationController {
     @ApiOperationLog(description = "取关用户")
     public Response<?> unfollow(@Validated @RequestBody UnfollowUserReqVO unfollowUserReqVO) {
         return relationService.unfollow(unfollowUserReqVO);
+    }
+
+    @PostMapping("/following/list")
+    @ApiOperationLog(description = "查询用户关注列表")
+    public PageResponse<FindFollowingUserRspVO> findFollowingList(@Validated @RequestBody FindFollowingListReqVO findFollowingListReqVO) {
+        return relationService.findFollowingList(findFollowingListReqVO);
     }
 
 }
