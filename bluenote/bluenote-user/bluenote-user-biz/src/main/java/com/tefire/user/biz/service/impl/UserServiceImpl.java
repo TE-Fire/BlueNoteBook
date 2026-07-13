@@ -349,7 +349,7 @@ public class UserServiceImpl implements UserService {
         // 如果缓存不为空
         if (CollUtil.isNotEmpty(redisValues)) {
             // 过滤为空的数据
-            redisValues = redisValues.stream().filter(Objects::isNull).toList();
+            redisValues = redisValues.stream().filter(Objects::nonNull).toList();
         }
 
         // 返参
