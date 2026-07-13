@@ -2,6 +2,8 @@ package com.tefire.relation.domain.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.tefire.relation.domain.dataobject.FollowingDO;
 
 public interface FollowingDOMapper {
@@ -18,4 +20,7 @@ public interface FollowingDOMapper {
     int updateByPrimaryKey(FollowingDO record);
 
     List<FollowingDO> selectByUserId(Long userId);
+
+    int deleteByUserIdAndFollowingUserId(@Param("userId") Long userId,
+                                         @Param("unfollowUserId") Long unfollowUserId);
 }

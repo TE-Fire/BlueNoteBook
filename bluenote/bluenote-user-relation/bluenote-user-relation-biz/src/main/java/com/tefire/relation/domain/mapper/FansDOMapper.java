@@ -1,5 +1,7 @@
 package com.tefire.relation.domain.mapper;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.tefire.relation.domain.dataobject.FansDO;
 
 public interface FansDOMapper {
@@ -14,4 +16,7 @@ public interface FansDOMapper {
     int updateByPrimaryKeySelective(FansDO record);
 
     int updateByPrimaryKey(FansDO record);
+
+    int deleteByUserIdAndFansUserId(@Param("userId") Long userId,
+                                    @Param("fansUserId") Long fansUserId);
 }
