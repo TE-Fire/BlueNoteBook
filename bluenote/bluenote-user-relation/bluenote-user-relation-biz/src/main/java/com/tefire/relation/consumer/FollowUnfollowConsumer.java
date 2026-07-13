@@ -1,5 +1,6 @@
 package com.tefire.relation.consumer;
 
+import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.core.io.ClassPathResource;
@@ -38,7 +39,8 @@ import org.apache.rocketmq.common.message.Message;
 @Component
 @Slf4j
 @RocketMQMessageListener(consumerGroup = "bluenote_group",
-        topic = MQConstants.TOPIC_FOLLOW_OR_UNFOLLOW
+        topic = MQConstants.TOPIC_FOLLOW_OR_UNFOLLOW,
+        consumeMode = ConsumeMode.ORDERLY // 顺序消费
 )
 public class FollowUnfollowConsumer implements RocketMQListener<Message> {
     

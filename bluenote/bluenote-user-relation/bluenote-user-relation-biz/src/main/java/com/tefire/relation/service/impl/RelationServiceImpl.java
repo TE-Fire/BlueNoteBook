@@ -212,8 +212,10 @@ public class RelationServiceImpl implements RelationService {
 
         log.info("==> 开始发送取关操作 MQ, 消息体: {}", unfollowUserMqDTO);
 
+        // hashKey 来确定应该将消息发送到哪个队列，以确保同一个 hashKey 的消息会按照顺序进入同一个队列，从而实现顺序消费
+        String hashKey = String.valueOf(userId); 
         // 异步发送 MQ 消息，提升接口响应速度
-        rocketMQTemplate.asyncSend(destination, message, new SendCallback() {
+        rocketMQTemplate.asyncSendOrderly(destination, message, hashKey, new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
                 log.info("==> MQ 发送成功，SendResult: {}", sendResult);
@@ -287,7 +289,8 @@ public class RelationServiceImpl implements RelationService {
         
         log.info("==> 开始发送关注操作 MQ, 消息体: {}", followUserMqDTO);
         
-        rocketMQTemplate.asyncSend(destination, message, new SendCallback() {
+        String hashKey = String.valueOf(userId);
+        rocketMQTemplate.asyncSendOrderly(destination, message, hashKey, new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
                 log.info("==> MQ 发送成功，SendResult: {}", sendResult);
