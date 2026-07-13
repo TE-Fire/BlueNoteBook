@@ -1,5 +1,7 @@
 package com.tefire.user.api;
 
+import java.util.List;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -8,6 +10,7 @@ import com.tefire.framework.common.response.Response;
 import com.tefire.user.constant.ApiConstants;
 import com.tefire.user.dto.req.FindUserByIdReqDTO;
 import com.tefire.user.dto.req.FindUserByPhoneReqDTO;
+import com.tefire.user.dto.req.FindUsersByIdsReqDTO;
 import com.tefire.user.dto.req.RegisterUserReqDTO;
 import com.tefire.user.dto.req.UpdateUserPasswordReqDTO;
 import com.tefire.user.dto.resp.FindUserByIdRspDTO;
@@ -59,4 +62,13 @@ public interface UserFeignApi {
      */
     @PostMapping(value = PREFIX + "/findById")
     Response<FindUserByIdRspDTO> findById(@RequestBody FindUserByIdReqDTO findUserByIdReqDTO);
+
+     /**
+     * 批量查询用户信息
+     * 
+     * @param findUsersByIdsReqDTO
+     * @return
+     */
+    @PostMapping(value = PREFIX + "/findByIds")
+    Response<List<FindUserByIdRspDTO>> findByIds(@RequestBody FindUsersByIdsReqDTO findUsersByIdsReqDTO);
 }

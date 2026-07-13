@@ -10,7 +10,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -318,6 +321,7 @@ public class UserServiceImpl implements UserService {
                      .id(userDO.getId())
                      .nickName(userDO.getNickname())
                      .avatar(userDO.getAvatar())
+                     .introduction(userDO.getIntroduction())
                      .build();
 
         // 异步将信息存入 Redis 缓存，提升响应速度
@@ -398,6 +402,35 @@ public class UserServiceImpl implements UserService {
                     .collect(Collectors.toList());
 
             // TODO: 异步线程将用户信息同步到 Redis 中
+            List<FindUserByIdRspDTO> finalFindUserByIdRspDTOS = findUserByIdRspDTOS2;
+            threadPoolTaskExecutor.submit(() -> {
+                // DTO 转 Map
+                Map<Long, FindUserByIdRspDTO> map = finalFindUserByIdRspDTOS.stream()
+                    .collect(Collectors.toMap(FindUserByIdRspDTO::getId, p -> p));
+
+                // 执行 pipeline 操作
+                redisTemplate.executePipelined(new SessionCallback<>() {
+                    @Override
+                    public Object execute(RedisOperations operations) {
+                        for (UserDO userDO : userDOs) {
+                            Long userId = userDO.getId();
+
+                            // 用户信息缓存 Redis Key
+                            String userInfoRedisKey = RedisKeyConstants.buildUserInfoKey(userId);
+
+                            // DTO 转 JSON
+                            FindUserByIdRspDTO findUserByIdRspDTO = map.get(userId);
+                            String value = JsonUtils.toJsonString(findUserByIdRspDTO);
+
+                            // 过期时间（保底1天 + 随机秒数，将缓存过期时间打散，防止同一时间大量缓存失效，导致数据库压力太大）
+                            long expireSeconds = 60*60*24 + RandomUtil.randomInt(60*60*24);
+
+                            operations.opsForValue().set(userInfoRedisKey, value, expireSeconds, TimeUnit.SECONDS);
+                        }
+                        return null;
+                    }
+                });
+            });
         }
 
         // 合并数据
