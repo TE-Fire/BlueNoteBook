@@ -5,6 +5,10 @@
  */
 package com.tefire.user.biz.domain.mapper;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
 import com.tefire.user.biz.domain.dataobject.UserDO;
 
 public interface UserDOMapper {
@@ -27,4 +31,11 @@ public interface UserDOMapper {
      */
     UserDO selectByPhone(String phone);
 
+     /**
+     * 批量查询用户信息
+     * 
+     * @param ids
+     * @return
+     */
+    List<UserDO> selectByIds(@Param("ids") List<Long> ids);
 }
