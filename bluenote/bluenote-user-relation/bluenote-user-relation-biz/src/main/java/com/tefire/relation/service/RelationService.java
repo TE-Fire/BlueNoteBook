@@ -2,6 +2,8 @@ package com.tefire.relation.service;
 
 import com.tefire.framework.common.response.PageResponse;
 import com.tefire.framework.common.response.Response;
+import com.tefire.relation.model.vo.FindFansListReqVO;
+import com.tefire.relation.model.vo.FindFansUserRspVO;
 import com.tefire.relation.model.vo.FindFollowingListReqVO;
 import com.tefire.relation.model.vo.FindFollowingUserRspVO;
 import com.tefire.relation.model.vo.FollowUserReqVO;
@@ -29,4 +31,11 @@ public interface RelationService {
      * @return
      */
     PageResponse<FindFollowingUserRspVO> findFollowingList(FindFollowingListReqVO findFollowingListReqVO);
+
+     /**
+     * 查询粉丝列表
+     * @param findFansListReqVO
+     * @return
+     */
+    PageResponse<FindFansUserRspVO> findFansList(FindFansListReqVO findFansListReqVO);
 }
