@@ -32,7 +32,7 @@
 
         <!-- DO 实体类存放路径 -->
         <javaModelGenerator targetPackage="com.tefire.count.domain.dataobject"
-                            targetProject="D:\BlueNoteBook\bluenote\bluenote-count\bluenote-note-biz\src\main\java"/>
+                            targetProject="D:\BlueNoteBook\bluenote\bluenote-count\bluenote-count-biz\src\main\java"/>
 
         <!-- Mapper xml 文件存放路径-->
         <sqlMapGenerator targetPackage="mapper"
