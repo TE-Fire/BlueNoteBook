@@ -38,7 +38,7 @@ import org.apache.rocketmq.common.message.Message;
  */
 @Component
 @Slf4j
-@RocketMQMessageListener(consumerGroup = "bluenote_group",
+@RocketMQMessageListener(consumerGroup = "bluenote_group_" + MQConstants.TOPIC_FOLLOW_OR_UNFOLLOW,
         topic = MQConstants.TOPIC_FOLLOW_OR_UNFOLLOW,
         consumeMode = ConsumeMode.ORDERLY // 顺序消费
 )
