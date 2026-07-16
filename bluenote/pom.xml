@@ -27,6 +27,7 @@
         <module>bluenote-distributed-id-generator</module>
         <module>bluenote-note</module>
         <module>bluenote-user-relation</module>
+        <module>bluenote-count</module>
     </modules>
 
     <properties>
