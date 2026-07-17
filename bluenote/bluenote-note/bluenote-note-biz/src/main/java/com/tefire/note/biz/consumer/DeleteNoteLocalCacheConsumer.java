@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Component
 @Slf4j
-@RocketMQMessageListener(consumerGroup = "bluenote_group" + MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, //Group
+@RocketMQMessageListener(consumerGroup = "bluenote_group_" + MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, //Group
         topic = MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, // 消费者的主题 Topic
         messageModel = MessageModel.BROADCASTING) // 广播模式
 public class DeleteNoteLocalCacheConsumer implements RocketMQListener<String> {

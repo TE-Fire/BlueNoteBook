@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Component
 @Slf4j
-@RocketMQMessageListener(consumerGroup = "bluenote_group" +  MQConstants.TOPIC_DELAY_DELETE_NOTE_REDIS_CACHE, // Group
+@RocketMQMessageListener(consumerGroup = "bluenote_group_" +  MQConstants.TOPIC_DELAY_DELETE_NOTE_REDIS_CACHE, // Group
         topic = MQConstants.TOPIC_DELAY_DELETE_NOTE_REDIS_CACHE // 消费者主题 Topic
     )
 public class DelayDeleteNoteRedisCacheConsumer implements RocketMQListener<String> {
