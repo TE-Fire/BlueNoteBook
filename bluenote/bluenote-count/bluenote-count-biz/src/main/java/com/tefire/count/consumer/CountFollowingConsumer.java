@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Component
 @Slf4j
-@RocketMQMessageListener(consumerGroup = "bluenote_" + MQConstants.TOPIC_COUNT_FOLLOWING,
+@RocketMQMessageListener(consumerGroup = "bluenote_group_" + MQConstants.TOPIC_COUNT_FOLLOWING,
     topic = MQConstants.TOPIC_COUNT_FOLLOWING
 )
 public class CountFollowingConsumer implements RocketMQListener<String> {
