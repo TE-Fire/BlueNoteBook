@@ -3,9 +3,11 @@ package com.tefire.relation.consumer;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -19,6 +21,8 @@ import com.tefire.relation.domain.dataobject.FansDO;
 import com.tefire.relation.domain.dataobject.FollowingDO;
 import com.tefire.relation.domain.mapper.FansDOMapper;
 import com.tefire.relation.domain.mapper.FollowingDOMapper;
+import com.tefire.relation.enums.FollowUnfollowTypeEnum;
+import com.tefire.relation.model.dto.CountFollowUnfollowMqDTO;
 import com.tefire.relation.model.dto.FollowUserMqDTO;
 import com.tefire.relation.model.dto.UnfollowUserMqDTO;
 
@@ -29,6 +33,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Objects;
 
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 
 /*
@@ -58,6 +64,9 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
 
     @Override
     public void onMessage(Message message) {
@@ -127,6 +136,17 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
 
             String userFansKey = RedisKeyConstants.buildUserFansKey(userId);
             redisTemplate.execute(script, Collections.singletonList(userFansKey), userId, timestamp);
+
+            // 发送 MQ 通知计数服务：统计关注数
+            // 构建消息体 DTO
+            CountFollowUnfollowMqDTO countFollowUnfollowMqDTO = CountFollowUnfollowMqDTO.builder()
+                    .userId(userId)
+                    .targetUserId(followUserId)
+                    .type(FollowUnfollowTypeEnum.FOLLOW.getCode()) // 关注
+                    .build();
+
+            // 发送 MQ
+            sendMQ(countFollowUnfollowMqDTO);
         }
     }
 
@@ -165,6 +185,52 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
             String fansRedisKey = RedisKeyConstants.buildUserFansKey(unfollowUserId);
             // 删除指定粉丝
             redisTemplate.opsForZSet().remove(fansRedisKey, userId);
+
+            // 发送 MQ 通知计数服务：统计关注数
+            // 构建消息体 DTO
+            CountFollowUnfollowMqDTO countFollowUnfollowMqDTO = CountFollowUnfollowMqDTO.builder()
+                    .userId(userId)
+                    .targetUserId(unfollowUserId)
+                    .type(FollowUnfollowTypeEnum.UNFOLLOW.getCode()) // 取关
+                    .build();
+
+            // 发送 MQ
+            sendMQ(countFollowUnfollowMqDTO);
         }
+    }
+
+    /**
+     * 发送 MQ 通知计数服务
+     * @param countFollowUnfollowMqDTO
+     */
+    private void sendMQ(CountFollowUnfollowMqDTO countFollowUnfollowMqDTO) {
+        // 构建详细体对象，并将 DTO 转为 json 字符串到消息体中
+        org.springframework.messaging.Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(countFollowUnfollowMqDTO)).build();
+
+        // 异步发送 MQ 消息
+        rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_FOLLOWING, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.debug("==> 【计数服务：关注数】MQ 发送成功，SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【计数服务：关注数】MQ 发送异常: ", throwable);
+            }
+        });
+
+        // 发送 MQ 通知计数服务：统计粉丝数
+        rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_FANS, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【计数服务：粉丝数】MQ 发送成功，SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【计数服务：粉丝数】MQ 发送异常: ", throwable);
+            }
+        });
     }
 }
