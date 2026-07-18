@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.tefire.framework.biz.context.holder.LoginUserContextHolder;
 import com.tefire.framework.common.exception.BizException;
 import com.tefire.framework.common.response.Response;
@@ -30,7 +31,9 @@ import com.tefire.framework.common.util.JsonUtils;
 import com.tefire.note.biz.constant.MQConstants;
 import com.tefire.note.biz.constant.RedisKeyConstants;
 import com.tefire.note.biz.domain.dataobject.NoteDO;
+import com.tefire.note.biz.domain.dataobject.NoteLikeDO;
 import com.tefire.note.biz.domain.mapper.NoteDOMapper;
+import com.tefire.note.biz.domain.mapper.NoteLikeDOMapper;
 import com.tefire.note.biz.domain.mapper.TopicDOMapper;
 import com.tefire.note.biz.enums.NoteLikeLuaResultEnum;
 import com.tefire.note.biz.enums.NoteStatusEnum;
@@ -83,9 +86,11 @@ public class NoteServiceImpl implements NoteService {
     @Resource
     private RocketMQTemplate rocketMQTemplate;
 
-
     @Resource(name = "taskExecutor")
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+
+    @Resource
+    private NoteLikeDOMapper noteLikeDOMapper;
 
     private static final Cache<Long, String> LOCAL_CACHE = Caffeine.newBuilder()
             .initialCapacity(10000)
@@ -582,7 +587,22 @@ public class NoteServiceImpl implements NoteService {
         switch (noteLikeLuaResultEnum) {
             // Redis 中布隆过滤器不存在
             case BLOOM_NOT_EXIST -> {
-                // TODO: 从数据库中校验笔记是否被点赞，并异步初始化布隆过滤器，设置过期时间
+                // 从数据库中校验笔记是否被点赞，并异步初始化布隆过滤器，设置过期时间
+                int count = noteLikeDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
+                // 保底 1 天 + 随机秒数
+                long expireSeconds = 60*60*24 + RandomUtil.randomInt(60*60*24);
+
+                if (count > 0) {
+                    asynBatchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey);
+                    throw new BizException(ResponseCodeEnum.NOTE_ALREADY_LIKED);
+                }
+
+                // 若数据库中也没有点赞记录，说明该用户还未点赞过任何笔记
+                // Lua 脚本路径
+                script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_add_note_like_and_expire.lua")));
+                // 返回值类型
+                script.setResultType(Long.class);
+                redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId, expireSeconds);
             }
             // 目标笔记已经被点赞
             case NOTE_LIKED -> throw new BizException(ResponseCodeEnum.NOTE_ALREADY_LIKED);
@@ -666,5 +686,37 @@ public class NoteServiceImpl implements NoteService {
         
         rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
         log.info("====> MQ：删除笔记本地缓存发送成功...");
+    }
+
+      /**
+     * 异步初始化布隆过滤器
+     * @param userId
+     * @param script
+     * @param expireSeconds
+     * @param bloomUserNoteLikeListKey
+     */
+    private void asynBatchAddNoteLike2BloomAndExpire(Long userId, long expireSeconds, String bloomUserNoteLikeListKey) {
+        threadPoolTaskExecutor.submit(() -> {
+            try {
+                // 异步全量同步，并设置过期时间
+                List<NoteLikeDO> noteLikeDOs = noteLikeDOMapper.selectByUserId(userId);
+
+                if (CollUtil.isNotEmpty(noteLikeDOs)) {
+                    DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+                    // Lua 脚本路径
+                    script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_batch_add_note_like_and_expire.lua")));
+                    // 返回值类型
+                    script.setResultType(Long.class);
+
+                    // 构建 Lua 参数
+                    List<Object> luaArgs = Lists.newArrayList();
+                    noteLikeDOs.forEach(noteLikeDO -> luaArgs.add(noteLikeDO.getUserId()));
+                    luaArgs.add(expireSeconds);
+                    redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), luaArgs.toArray());
+                }
+            } catch (Exception e) {
+                log.error("## 异步初始化布隆过滤器异常: ", e);
+            }
+        });
     }
 }

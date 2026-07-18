@@ -1,5 +1,9 @@
 package com.tefire.note.biz.domain.mapper;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
 import com.tefire.note.biz.domain.dataobject.NoteLikeDO;
 
 public interface NoteLikeDOMapper {
@@ -14,4 +18,8 @@ public interface NoteLikeDOMapper {
     int updateByPrimaryKeySelective(NoteLikeDO record);
 
     int updateByPrimaryKey(NoteLikeDO record);
+
+    int selectCountByUserIdAndNoteId(@Param("userId") Long userId, @Param("noteId") Long noteId);
+
+    List<NoteLikeDO> selectByUserId(@Param("userId") Long userId);
 }
