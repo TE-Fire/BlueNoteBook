@@ -1,6 +1,7 @@
 package com.tefire.note.biz.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -10,10 +11,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -28,6 +32,7 @@ import com.tefire.note.biz.constant.RedisKeyConstants;
 import com.tefire.note.biz.domain.dataobject.NoteDO;
 import com.tefire.note.biz.domain.mapper.NoteDOMapper;
 import com.tefire.note.biz.domain.mapper.TopicDOMapper;
+import com.tefire.note.biz.enums.NoteLikeLuaResultEnum;
 import com.tefire.note.biz.enums.NoteStatusEnum;
 import com.tefire.note.biz.enums.NoteTypeEnum;
 import com.tefire.note.biz.enums.NoteVisibleEnum;
@@ -35,6 +40,7 @@ import com.tefire.note.biz.enums.ResponseCodeEnum;
 import com.tefire.note.biz.model.vo.DeleteNoteReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
+import com.tefire.note.biz.model.vo.LikeNoteReqVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
 import com.tefire.note.biz.model.vo.TopNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
@@ -249,7 +255,7 @@ public class NoteServiceImpl implements NoteService {
         // String content = null;
         CompletableFuture<String> contentResultFuture = CompletableFuture.completedFuture(null);
 
-        if (Objects.equals(noteDO.getIsContentEmpty(), Boolean.FALSE)) {
+        if (Objects.equals(noteDO.getIsContentEmpty(), Boolean.FALSE)) { // 笔记内容不为空
                 // content = keyValueRpcService.findNoteContent(noteDO.getContentUuid());
                 contentResultFuture = CompletableFuture
                         .supplyAsync(() -> keyValueRpcService.findNoteContent(noteDO.getContentUuid()), threadPoolTaskExecutor);
@@ -552,6 +558,70 @@ public class NoteServiceImpl implements NoteService {
 
         return Response.success();
     }
+
+    @Override
+    public Response<?> likeNote(LikeNoteReqVO likeNoteReqVO) {
+        // 1. 校验被点赞的笔记是否存在
+        Long noteId = likeNoteReqVO.getId();
+        checkNoteIsExist(noteId);
+        // 2. 判断目标笔记，是否已经点赞过
+        Long userId = LoginUserContextHolder.getUserId();
+
+        String bloomUserNoteLikeListKey = RedisKeyConstants.buildBloomUserNoteLikeListKey(userId);
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        // Lua 脚本路径
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_note_like_check.lua")));
+        // 返回值类型
+        script.setResultType(Long.class);
+        // 执行 Lua 脚本，拿到返回结果
+        Long result = redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId);
+
+        NoteLikeLuaResultEnum noteLikeLuaResultEnum = NoteLikeLuaResultEnum.valueOf(result);
+
+        switch (noteLikeLuaResultEnum) {
+            // Redis 中布隆过滤器不存在
+            case BLOOM_NOT_EXIST -> {
+                // TODO: 从数据库中校验笔记是否被点赞，并异步初始化布隆过滤器，设置过期时间
+            }
+            // 目标笔记已经被点赞
+            case NOTE_LIKED -> throw new BizException(ResponseCodeEnum.NOTE_ALREADY_LIKED);
+        }
+
+        // 3. 更新用户 ZSET 点赞列表
+
+        // 4. 发送 MQ, 将点赞数据落库
+
+        return Response.success();
+    }
+    private void checkNoteIsExist(Long noteId) {
+        // 先从本地缓存校验
+        String findNoteDetailRspVOStrLocalCache = LOCAL_CACHE.getIfPresent(noteId);
+        FindNoteDetailRspVO findNoteDetailRspVO = JsonUtils.parseObject(findNoteDetailRspVOStrLocalCache, FindNoteDetailRspVO.class);
+
+        if (Objects.isNull(findNoteDetailRspVO)) {
+            // 再从 redis 获取
+            String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
+            String noteDetailJson = redisTemplate.opsForValue().get(noteDetailKey);
+
+            findNoteDetailRspVO = JsonUtils.parseObject(noteDetailJson, FindNoteDetailRspVO.class);
+
+            // 都不存在，从数据库获取
+            if (Objects.isNull(findNoteDetailRspVO)) {
+                int count = noteDOMapper.selectCountByNoteId(noteId);
+
+                // 数据库中也不存在，提示用户
+                if (count == 0) {
+                    throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
+                }
+
+                // 若数据库存在，异步同步到 缓存
+                FindNoteDetailReqVO findNoteDetailReqVO = FindNoteDetailReqVO.builder().id(noteId).build();
+                findNoteDetail(findNoteDetailReqVO);
+            }
+        }
+    }
+
     /**
      * 删除本地笔记缓存
      * @param noteId

@@ -1,3 +1,8 @@
+/*
+ * @Author: TE-Fire 3037749727@qq.com
+ * @Date: 2026-07-02 12:23:02
+ * @Description: 
+ */
 package com.tefire.note.biz.constant;
 
 public class RedisKeyConstants {
@@ -6,6 +11,11 @@ public class RedisKeyConstants {
      * 笔记详情 KEY 前缀
      */
     public static final String NOTE_DETAIL_KEY = "note:detail:";
+
+     /**
+     * 布隆过滤器：用户笔记点赞
+     */
+    public static final String BLOOM_USER_NOTE_LIKE_LIST_KEY = "bloom:note:likes:";
 
 
     /**
@@ -17,5 +27,13 @@ public class RedisKeyConstants {
         return NOTE_DETAIL_KEY + noteId;
     }
 
+     /**
+     * 构建完整的布隆过滤器：用户笔记点赞 KEY
+     * @param userId
+     * @return
+     */
+    public static String buildBloomUserNoteLikeListKey(Long userId) {
+        return BLOOM_USER_NOTE_LIKE_LIST_KEY + userId;
+    }
 }
 
