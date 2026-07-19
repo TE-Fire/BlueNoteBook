@@ -631,7 +631,11 @@ public class NoteServiceImpl implements NoteService {
                     asynInitUserNoteLikesZSet(userId, userNoteLikeZSetKey);
                     throw new BizException(ResponseCodeEnum.NOTE_ALREADY_LIKED);
                 }
-            } 
+            }
+            case NOTE_LIKE_SUCCESS -> {
+                // 点赞成功，布隆过滤器已添加，直接继续后续流程
+                // 无需额外操作
+            }
         }
 
         // 3. 更新用户 ZSET 点赞列表
