@@ -40,6 +40,7 @@ import com.tefire.note.biz.enums.LikeUnlikeNoteTypeEnum;
 import com.tefire.note.biz.enums.NoteLikeLuaResultEnum;
 import com.tefire.note.biz.enums.NoteStatusEnum;
 import com.tefire.note.biz.enums.NoteTypeEnum;
+import com.tefire.note.biz.enums.NoteUnlikeLuaResultEnum;
 import com.tefire.note.biz.enums.NoteVisibleEnum;
 import com.tefire.note.biz.enums.ResponseCodeEnum;
 import com.tefire.note.biz.model.dto.LikeUnlikeNoteMqDTO;
@@ -49,6 +50,7 @@ import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
 import com.tefire.note.biz.model.vo.LikeNoteReqVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
 import com.tefire.note.biz.model.vo.TopNoteReqVO;
+import com.tefire.note.biz.model.vo.UnlikeNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteVisibleOnlyMeReqVO;
 import com.tefire.note.biz.rpc.DistributedIdGeneratorRpcService;
@@ -699,6 +701,52 @@ public class NoteServiceImpl implements NoteService {
                 log.error("==> 【笔记点赞】MQ 发送异常: ", throwable);
             }
         });
+
+        return Response.success();
+    }
+
+    @Override
+    public Response<?> unlikeNote(UnlikeNoteReqVO unlikeNoteReqVO) {
+        Long noteId = unlikeNoteReqVO.getNoteId();
+
+        // 1. 校验笔记是否真实存在
+        checkNoteIsExist(noteId);
+        // 2. 校验笔记是否被点赞过
+        Long userId = LoginUserContextHolder.getUserId();
+        String bloomUserNoteLikeListKey = RedisKeyConstants.buildBloomUserNoteLikeListKey(userId);
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_note_unlike_check.lua")));
+        script.setResultType(Long.class);
+        Long result = redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId);
+
+        NoteUnlikeLuaResultEnum noteUnlikeLuaResultEnum = NoteUnlikeLuaResultEnum.valueOf(result);
+
+        switch (noteUnlikeLuaResultEnum) {
+            case NOT_EXIST -> { // 布隆过滤器不存在
+                // 异步初始化布隆过滤器
+                threadPoolTaskExecutor.submit(() -> {
+                    // 保底1天+随机秒数
+                    long expireSeconds = 60*60*24 + RandomUtil.randomInt(60*60*24);
+                    batchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey);
+                });
+                // 从数据库中校验笔记是否被点赞
+                int count = noteLikeDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
+
+                // 未点赞，无法进行取消点赞
+                if (count == 0) throw new BizException(ResponseCodeEnum.NOTE_NOT_LIKED);
+            }
+            case NOTE_NOT_LIKED -> { // 布隆过滤器校验目标笔记未被点赞（判断绝对正确）
+                throw new BizException(ResponseCodeEnum.NOTE_NOT_LIKED);
+            }
+            case NOTE_LIKED -> {
+                // 3. 删除 ZSET 中已点赞的笔记 ID
+                String userNoteLikeZSetKey = RedisKeyConstants.buildUserNoteLikeZSetKey(userId);
+                redisTemplate.opsForZSet().remove(userNoteLikeZSetKey, noteId);
+            }
+        }
+
+        // TODO: 4. 发送 MQ, 数据更新落库
 
         return Response.success();
     }

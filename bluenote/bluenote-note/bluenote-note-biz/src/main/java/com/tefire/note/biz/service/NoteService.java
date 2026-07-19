@@ -7,6 +7,7 @@ import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
 import com.tefire.note.biz.model.vo.LikeNoteReqVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
 import com.tefire.note.biz.model.vo.TopNoteReqVO;
+import com.tefire.note.biz.model.vo.UnlikeNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteVisibleOnlyMeReqVO;
 
@@ -72,5 +73,12 @@ public interface NoteService {
      * @return
      */
     Response<?> likeNote(LikeNoteReqVO likeNoteReqVO);
+
+    /**
+     * 取消点赞笔记
+     * @param unlikeNoteReqVO
+     * @return
+     */
+    Response<?> unlikeNote(UnlikeNoteReqVO unlikeNoteReqVO);
 
 }
