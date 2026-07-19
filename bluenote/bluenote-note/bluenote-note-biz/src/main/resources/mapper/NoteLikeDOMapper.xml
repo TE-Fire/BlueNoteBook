@@ -107,4 +107,13 @@
     select note_id, create_time from t_note_like
     where user_id = #{userId} and status = 1 order by create_time desc limit #{limit}
   </select>
+
+  <!-- insertOrUpdate --> 
+
+  <insert id="insertOrUpdate" parameterType="com.tefire.note.biz.domain.dataobject">
+    INSERT INTO t_note_like (user_id, note_id, create_time, status)
+    VALUES (#{userId}, #{noteId}, #{createTime}, #{status})
+      ON DUPLICATE KEY UPDATE
+          create_time = #{createTime}, status = #{status};
+  </insert>
 </mapper>
