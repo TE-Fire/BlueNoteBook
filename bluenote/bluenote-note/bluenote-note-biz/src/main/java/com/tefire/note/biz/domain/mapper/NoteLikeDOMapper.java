@@ -22,4 +22,6 @@ public interface NoteLikeDOMapper {
     int selectCountByUserIdAndNoteId(@Param("userId") Long userId, @Param("noteId") Long noteId);
 
     List<NoteLikeDO> selectByUserId(@Param("userId") Long userId);
+
+    List<NoteLikeDO> selectLikedByUserIdAndLimit(@Param("userId") Long userId, @Param("limit")  int limit);
 }
