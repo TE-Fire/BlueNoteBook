@@ -743,14 +743,46 @@ public class NoteServiceImpl implements NoteService {
             case NOTE_NOT_LIKED -> { // 布隆过滤器校验目标笔记未被点赞（判断绝对正确）
                 throw new BizException(ResponseCodeEnum.NOTE_NOT_LIKED);
             }
-            case NOTE_LIKED -> {
-                // 3. 删除 ZSET 中已点赞的笔记 ID
+            case NOTE_LIKED -> { // 布隆过滤器返回已点赞，可能存在误判
                 String userNoteLikeZSetKey = RedisKeyConstants.buildUserNoteLikeZSetKey(userId);
+                // 先检查 ZSet 是否真的存在（相对可靠的缓存）
+                Double score = redisTemplate.opsForZSet().score(userNoteLikeZSetKey, noteId);
+                if (Objects.isNull(score)) {
+                    // ZSet 中不存在，可能是误判或缓存失效，需要查DB确认
+                    int count = noteLikeDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
+                    if (count == 0) {
+                        throw new BizException(ResponseCodeEnum.NOTE_NOT_LIKED);
+                    }
+                    // DB存在但ZSet不存在，异步初始化ZSet
+                    asynInitUserNoteLikesZSet(userId, userNoteLikeZSetKey);
+                }
+                // 3. 删除 ZSET 中已点赞的笔记 ID
                 redisTemplate.opsForZSet().remove(userNoteLikeZSetKey, noteId);
             }
         }
 
-        // TODO: 4. 发送 MQ, 数据更新落库
+        // 4. 发送 MQ, 数据更新落库
+        LikeUnlikeNoteMqDTO dto = LikeUnlikeNoteMqDTO.builder()
+        .userId(userId)
+        .noteId(noteId)
+        .type(LikeUnlikeNoteTypeEnum.UNLIKE.getCode())
+        .createTime(LocalDateTime.now())
+        .build();
+
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(dto)).build();
+        String destination = MQConstants.TOPIC_LIKE_OR_UNLIKE + ":" + MQConstants.TAG_UNLIKE;
+        String hashKey = String.valueOf(userId);
+
+        rocketMQTemplate.asyncSendOrderly(destination, message, hashKey, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【笔记取消点赞】MQ 发送成功");
+            }
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【笔记取消点赞】MQ 发送异常", throwable);
+            }
+        });
 
         return Response.success();
     }
