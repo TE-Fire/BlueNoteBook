@@ -1,6 +1,7 @@
 package com.tefire.note.biz.service;
 
 import com.tefire.framework.common.response.Response;
+import com.tefire.note.biz.model.vo.CollectNoteReqVO;
 import com.tefire.note.biz.model.vo.DeleteNoteReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
@@ -81,4 +82,10 @@ public interface NoteService {
      */
     Response<?> unlikeNote(UnlikeNoteReqVO unlikeNoteReqVO);
 
+     /**
+     * 收藏笔记
+     * @param collectNoteReqVO
+     * @return
+     */
+    Response<?> collectNote(CollectNoteReqVO collectNoteReqVO);
 }

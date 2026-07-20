@@ -90,4 +90,15 @@
       `status` = #{status,jdbcType=TINYINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
+  
+  <!-- selectCountByUserIdAndNoteId --> 
+  <select id="selectCountByUserIdAndNoteId" resultType="int" parameterType="map">
+    select count(1) from t_note_collection where user_id = #{userId} and note_id = #{noteId} and status = 1 limit 1
+  </select>
+
+  <!-- selectByUserId --> 
+  <select id="selectByUserId" resultMap="BaseResultMap" parameterType="map">
+    select note_id from t_note_collection
+    where user_id = #{userId} and status = 1
+  </select>
 </mapper>

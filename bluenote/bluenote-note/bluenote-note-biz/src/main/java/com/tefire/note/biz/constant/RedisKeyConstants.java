@@ -18,6 +18,11 @@ public class RedisKeyConstants {
     public static final String USER_NOTE_LIKE_ZSET_KEY = "user:note:likes:";
 
     /**
+     * 布隆过滤器：用户笔记收藏 前缀
+     */
+    public static final String BLOOM_USER_NOTE_COLLECT_LIST_KEY = "bloom:note:collects:";
+
+    /**
      * 构建完整的笔记详情 KEY
      * @param noteId
      * @return
@@ -42,6 +47,15 @@ public class RedisKeyConstants {
      */
     public static String buildUserNoteLikeZSetKey(Long userId) {
         return USER_NOTE_LIKE_ZSET_KEY + userId;
+    }
+
+    /**
+     * 构建完整的布隆过滤器：用户笔记收藏 KEY
+     * @param userId
+     * @return
+     */
+    public static String buildBloomUserNoteCollectListKey(Long userId) {
+        return BLOOM_USER_NOTE_COLLECT_LIST_KEY + userId;
     }
 }
 

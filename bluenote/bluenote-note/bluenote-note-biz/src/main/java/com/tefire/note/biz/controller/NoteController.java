@@ -1,8 +1,3 @@
-/*
- * @Author: TE-Fire 3037749727@qq.com
- * @Date: 2026-07-01 12:52:56
- * @Description: 
- */
 package com.tefire.note.biz.controller;
 
 import org.springframework.validation.annotation.Validated;
@@ -13,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tefire.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.tefire.framework.common.response.Response;
+import com.tefire.note.biz.model.vo.CollectNoteReqVO;
 import com.tefire.note.biz.model.vo.DeleteNoteReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
@@ -81,5 +77,11 @@ public class NoteController {
     @ApiOperationLog(description = "取消点赞笔记")
     public Response<?> unlikeNote(@Validated @RequestBody UnlikeNoteReqVO unlikeNoteReqVO) {
         return noteService.unlikeNote(unlikeNoteReqVO);
+    }
+
+    @PostMapping(value = "/collect")
+    @ApiOperationLog(description = "收藏笔记")
+    public Response<?> collectNote(@Validated @RequestBody CollectNoteReqVO collectNoteReqVO) {
+        return noteService.collectNote(collectNoteReqVO);
     }
 }
