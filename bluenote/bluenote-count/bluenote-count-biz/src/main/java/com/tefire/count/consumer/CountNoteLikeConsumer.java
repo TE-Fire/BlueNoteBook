@@ -2,6 +2,9 @@ package com.tefire.count.consumer;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -10,7 +13,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import com.github.phantomthief.collection.BufferTrigger;
+import com.google.common.collect.Maps;
 import com.tefire.count.constant.MQConstants;
+import com.tefire.count.enums.LikeUnlikeNoteTypeEnum;
+import com.tefire.count.model.dto.CountLikeUnlikeNoteMqDTO;
 import com.tefire.framework.common.util.JsonUtils;
 
 import jakarta.annotation.Resource;
@@ -47,10 +53,40 @@ public class CountNoteLikeConsumer implements RocketMQListener<String> {
         bufferTrigger.enqueue(body);
     }
 
+    @SuppressWarnings("null")
     private void consumeMessage(List<String> bodys) {
         log.info("==> 【笔记点赞数】聚合消息, size: {}", bodys.size());
         log.info("==> 【笔记点赞数】聚合消息, {}", JsonUtils.toJsonString(bodys));
 
-        // TODO:
+        // List<String> 转 List<CountLikeUnlikeNoteMqDTO>
+        List<CountLikeUnlikeNoteMqDTO> countLikeUnlikeNoteMqDTOs = bodys.stream()
+                .map(body -> JsonUtils.parseObject(body, CountLikeUnlikeNoteMqDTO.class)).toList();
+
+        // 按照笔记 ID 分组
+        Map<Long, List<CountLikeUnlikeNoteMqDTO>> group = countLikeUnlikeNoteMqDTOs.stream()
+                .collect(Collectors.groupingBy(CountLikeUnlikeNoteMqDTO::getNoteId));
+
+        // 按组汇总数据，统计出最终的计数
+        // key 为笔记 ID, value 为最终操作的计数
+        Map<Long, Integer> countMap = Maps.newHashMap();
+
+        for (Map.Entry<Long, List<CountLikeUnlikeNoteMqDTO>> entry : group.entrySet()) {
+            List<CountLikeUnlikeNoteMqDTO> list = entry.getValue();
+            // 最终的计数值，默认为 0
+            int finalCount = 0;
+            for (CountLikeUnlikeNoteMqDTO countLikeUnlikeNoteMqDTO : list) {
+                Integer type = countLikeUnlikeNoteMqDTO.getType();
+                LikeUnlikeNoteTypeEnum likeUnlikeNoteTypeEnum = LikeUnlikeNoteTypeEnum.valueOf(type);
+
+                if (Objects.isNull(likeUnlikeNoteTypeEnum)) continue;
+
+                switch (likeUnlikeNoteTypeEnum) {
+                    case LIKE -> finalCount += 1;
+                    case UNLIKE -> finalCount -= 1;
+                }
+            }
+            countMap.put(entry.getKey(), finalCount);
+        }
+        log.info("## 【笔记点赞数】聚合后的计数数据: {}", JsonUtils.toJsonString(countMap));
     }
 }
