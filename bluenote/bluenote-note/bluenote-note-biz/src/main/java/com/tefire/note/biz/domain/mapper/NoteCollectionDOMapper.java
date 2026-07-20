@@ -49,4 +49,11 @@ public interface NoteCollectionDOMapper {
      * @return
      */
     List<NoteCollectionDO> selectCollectedByUserIdAndLimit(@Param("userId") Long userId, @Param("limit")  int limit);
+
+     /**
+     * 新增笔记收藏记录，若已存在，则更新笔记收藏记录
+     * @param noteCollectionDO
+     * @return
+     */
+    int insertOrUpdate(NoteCollectionDO noteCollectionDO);
 }

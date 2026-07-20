@@ -38,6 +38,7 @@ import com.tefire.note.biz.domain.mapper.NoteCollectionDOMapper;
 import com.tefire.note.biz.domain.mapper.NoteDOMapper;
 import com.tefire.note.biz.domain.mapper.NoteLikeDOMapper;
 import com.tefire.note.biz.domain.mapper.TopicDOMapper;
+import com.tefire.note.biz.enums.CollectUnCollectNoteTypeEnum;
 import com.tefire.note.biz.enums.LikeUnlikeNoteTypeEnum;
 import com.tefire.note.biz.enums.NoteCollectLuaResultEnum;
 import com.tefire.note.biz.enums.NoteLikeLuaResultEnum;
@@ -46,6 +47,7 @@ import com.tefire.note.biz.enums.NoteTypeEnum;
 import com.tefire.note.biz.enums.NoteUnlikeLuaResultEnum;
 import com.tefire.note.biz.enums.NoteVisibleEnum;
 import com.tefire.note.biz.enums.ResponseCodeEnum;
+import com.tefire.note.biz.model.dto.CollectUnCollectNoteMqDTO;
 import com.tefire.note.biz.model.dto.LikeUnlikeNoteMqDTO;
 import com.tefire.note.biz.model.vo.CollectNoteReqVO;
 import com.tefire.note.biz.model.vo.DeleteNoteReqVO;
@@ -930,8 +932,31 @@ public class NoteServiceImpl implements NoteService {
                 redisTemplate.execute(script2, Collections.singletonList(userNoteCollectZSetKey), luaArgs.toArray());
             }
         }
-        // TODO: 4. 发送 MQ, 将收藏数据落库
+        // 4. 发送 MQ, 将收藏数据落库
+        CollectUnCollectNoteMqDTO collectUnCollectNoteMqDTO = CollectUnCollectNoteMqDTO.builder()
+            .userId(userId)
+            .noteId(noteId)
+            .type(CollectUnCollectNoteTypeEnum.COLLECT.getCode()) // 收藏笔记
+            .createTime(now)
+            .build();
         
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(collectUnCollectNoteMqDTO)).build();
+        String destination = MQConstants.TOPIC_COLLECT_OR_UN_COLLECT + ":" + MQConstants.TAG_COLLECT;
+        String hasKey = String.valueOf(userId);
+
+        // 异步发送顺序 MQ 消息，提升接口响应速度
+        rocketMQTemplate.asyncSendOrderly(destination, message, hasKey, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【笔记收藏】MQ 发送成功，SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【笔记收藏】MQ 发送异常: ", throwable);
+            }
+        });
+
         return Response.success();
     }
 
