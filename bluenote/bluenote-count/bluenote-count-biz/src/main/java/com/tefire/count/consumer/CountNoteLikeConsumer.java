@@ -6,10 +6,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import com.github.phantomthief.collection.BufferTrigger;
@@ -101,6 +105,23 @@ public class CountNoteLikeConsumer implements RocketMQListener<String> {
             if (isExisted) {
                 // 对目标用户 Hash 中的点赞数字段进行计数操作
                 redisTemplate.opsForHash().increment(redisKey, RedisKeyConstants.FIELD_LIKE_TOTAL, v);
+            }
+        });
+
+        // 发送 MQ, 笔记点赞数据落库
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(countMap))
+                .build();
+
+        // 异步发送 MQ 消息
+        rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_NOTE_LIKE_2_DB, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【计数服务：笔记点赞数入库】MQ 发送成功，SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【计数服务：笔记点赞数入库】MQ 发送异常: ", throwable);
             }
         });
     }

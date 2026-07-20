@@ -1,5 +1,7 @@
 package com.tefire.count.domain.mapper;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.tefire.count.domain.dataobject.NoteCountDO;
 
 public interface NoteCountDOMapper {
@@ -14,4 +16,12 @@ public interface NoteCountDOMapper {
     int updateByPrimaryKeySelective(NoteCountDO record);
 
     int updateByPrimaryKey(NoteCountDO record);
+
+     /**
+     * 添加笔记计数记录或更新笔记点赞数
+     * @param count
+     * @param noteId
+     * @return
+     */
+    int insertOrUpdateLikeTotalByNoteId(@Param("count") Integer count, @Param("noteId") Long noteId);
 }
