@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import com.github.phantomthief.collection.BufferTrigger;
 import com.google.common.collect.Maps;
 import com.tefire.count.constant.MQConstants;
+import com.tefire.count.constant.RedisKeyConstants;
 import com.tefire.count.enums.LikeUnlikeNoteTypeEnum;
 import com.tefire.count.model.dto.CountLikeUnlikeNoteMqDTO;
 import com.tefire.framework.common.util.JsonUtils;
@@ -88,5 +89,19 @@ public class CountNoteLikeConsumer implements RocketMQListener<String> {
             countMap.put(entry.getKey(), finalCount);
         }
         log.info("## 【笔记点赞数】聚合后的计数数据: {}", JsonUtils.toJsonString(countMap));
+
+        // 更新 redis
+        countMap.forEach((k, v) -> {
+            String redisKey = RedisKeyConstants.buildCountNoteKey(k);
+            // 判断 Redis 中 Hash 是否存在
+            boolean isExisted = redisTemplate.hasKey(redisKey);
+
+            // 若存在才会更新
+            // (因为缓存设有过期时间，考虑到过期后，缓存会被删除，这里需要判断一下，存在才会去更新，而初始化工作放在查询计数来做)
+            if (isExisted) {
+                // 对目标用户 Hash 中的点赞数字段进行计数操作
+                redisTemplate.opsForHash().increment(redisKey, RedisKeyConstants.FIELD_LIKE_TOTAL, v);
+            }
+        });
     }
 }
