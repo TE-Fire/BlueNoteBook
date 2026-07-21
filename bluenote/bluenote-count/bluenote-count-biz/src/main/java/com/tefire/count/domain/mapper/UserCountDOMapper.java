@@ -50,4 +50,12 @@ public interface UserCountDOMapper {
      * @return
      */
     int insertOrUpdateCollectionTotalByUserId(@Param("count") Integer count, @Param("userId") Long userId);
+
+     /**
+     * 添加记录或更新笔记发布数
+     * @param count
+     * @param userId
+     * @return
+     */
+    int insertOrUpdateNoteTotalByUserId(@Param("count") Long count, @Param("userId") Long userId);
 }

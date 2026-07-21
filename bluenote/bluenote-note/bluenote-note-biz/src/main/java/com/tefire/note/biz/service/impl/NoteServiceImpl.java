@@ -42,6 +42,7 @@ import com.tefire.note.biz.enums.CollectUnCollectNoteTypeEnum;
 import com.tefire.note.biz.enums.LikeUnlikeNoteTypeEnum;
 import com.tefire.note.biz.enums.NoteCollectLuaResultEnum;
 import com.tefire.note.biz.enums.NoteLikeLuaResultEnum;
+import com.tefire.note.biz.enums.NoteOperateEnum;
 import com.tefire.note.biz.enums.NoteStatusEnum;
 import com.tefire.note.biz.enums.NoteTypeEnum;
 import com.tefire.note.biz.enums.NoteUnCollectLuaResultEnum;
@@ -50,6 +51,7 @@ import com.tefire.note.biz.enums.NoteVisibleEnum;
 import com.tefire.note.biz.enums.ResponseCodeEnum;
 import com.tefire.note.biz.model.dto.CollectUnCollectNoteMqDTO;
 import com.tefire.note.biz.model.dto.LikeUnlikeNoteMqDTO;
+import com.tefire.note.biz.model.dto.NoteOperateMqDTO;
 import com.tefire.note.biz.model.vo.CollectNoteReqVO;
 import com.tefire.note.biz.model.vo.DeleteNoteReqVO;
 import com.tefire.note.biz.model.vo.FindNoteDetailReqVO;
@@ -208,6 +210,34 @@ public class NoteServiceImpl implements NoteService {
                 keyValueRpcService.deleteNoteContent(contentUuid);
             }
         }
+
+        // 发送 MQ
+        // 构建消息体 DTO
+        NoteOperateMqDTO noteOperateMqDTO = NoteOperateMqDTO.builder()
+                .creatorId(creatorId)
+                .noteId(Long.valueOf(snowflakeId))
+                .type(NoteOperateEnum.PUBLISH.getCode()) // 发布笔记
+                .build();
+
+        // 构建消息对象，并将 DTO 转成 Json 字符串设置到消息体中
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(noteOperateMqDTO))
+                .build();
+
+        // 通过冒号连接, 可让 MQ 发送给主题 Topic 时，携带上标签 Tag
+        String destination = MQConstants.TOPIC_NOTE_OPERATE + ":" + MQConstants.TAG_NOTE_PUBLISH;
+
+        // 异步发送 MQ 消息，提升接口响应速度
+        rocketMQTemplate.asyncSend(destination, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【笔记发布】MQ 发送成功，SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【笔记发布】MQ 发送异常: ", throwable);
+            }
+        });
         return Response.success();        
     }
 
@@ -516,6 +546,36 @@ public class NoteServiceImpl implements NoteService {
         }
 
         deleteNoteCache(noteId);
+
+        log.info("====> MQ：删除笔记本地缓存发送成功...");
+
+        // 发送 MQ
+        // 构建消息体 DTO
+        NoteOperateMqDTO noteOperateMqDTO = NoteOperateMqDTO.builder()
+                .creatorId(selectNoteDO.getCreatorId())
+                .noteId(noteId)
+                .type(NoteOperateEnum.DELETE.getCode()) // 删除笔记
+                .build();
+
+        // 构建消息对象，并将 DTO 转成 Json 字符串设置到消息体中
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(noteOperateMqDTO))
+                .build();
+
+        // 通过冒号连接, 可让 MQ 发送给主题 Topic 时，携带上标签 Tag
+        String destination = MQConstants.TOPIC_NOTE_OPERATE + ":" + MQConstants.TAG_NOTE_DELETE;
+
+        // 异步发送 MQ 消息，提升接口响应速度
+        rocketMQTemplate.asyncSend(destination, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【笔记删除】MQ 发送成功，SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【笔记删除】MQ 发送异常: ", throwable);
+            }
+        });
 
         return Response.success();
     }
