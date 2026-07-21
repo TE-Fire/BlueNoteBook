@@ -44,6 +44,7 @@ import com.tefire.note.biz.enums.NoteCollectLuaResultEnum;
 import com.tefire.note.biz.enums.NoteLikeLuaResultEnum;
 import com.tefire.note.biz.enums.NoteStatusEnum;
 import com.tefire.note.biz.enums.NoteTypeEnum;
+import com.tefire.note.biz.enums.NoteUnCollectLuaResultEnum;
 import com.tefire.note.biz.enums.NoteUnlikeLuaResultEnum;
 import com.tefire.note.biz.enums.NoteVisibleEnum;
 import com.tefire.note.biz.enums.ResponseCodeEnum;
@@ -56,6 +57,7 @@ import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
 import com.tefire.note.biz.model.vo.LikeNoteReqVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
 import com.tefire.note.biz.model.vo.TopNoteReqVO;
+import com.tefire.note.biz.model.vo.UnCollectNoteReqVO;
 import com.tefire.note.biz.model.vo.UnlikeNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteVisibleOnlyMeReqVO;
@@ -960,6 +962,63 @@ public class NoteServiceImpl implements NoteService {
         return Response.success();
     }
 
+    @Override
+    public Response<?> unCollectNote(UnCollectNoteReqVO unCollectNoteReqVO) {
+        Long noteId = unCollectNoteReqVO.getNoteId();
+        // 1. 校验笔记是否真实存在
+        checkNoteIsExist(noteId);
+        Long userId = LoginUserContextHolder.getUserId();
+        // 2. 校验笔记是否被收藏过
+        // 布隆过滤器 Key
+        String bloomUserNoteCollectListKey = RedisKeyConstants.buildBloomUserNoteCollectListKey(userId);
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        // Lua 脚本路径
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_note_uncollect_check.lua")));
+        // 返回值类型
+        script.setResultType(Long.class);
+
+        // 执行 Lua 脚本，拿到返回结果
+        Long result = redisTemplate.execute(script, Collections.singletonList(bloomUserNoteCollectListKey), noteId);
+
+        NoteUnCollectLuaResultEnum noteUnCollectLuaResultEnum = NoteUnCollectLuaResultEnum.valueOf(result);
+        String userNoteCollectZSetKey = RedisKeyConstants.buildUserNoteCollectZSetKey(userId);
+
+        switch (noteUnCollectLuaResultEnum) {
+            // 布隆过滤器不存在
+            case NOT_EXIST -> {
+                // 异步初始化布隆过滤器
+                threadPoolTaskExecutor.submit(() -> {
+                    // 保底1天+随机秒数
+                    long expireSeconds = 60*60*24 + RandomUtil.randomInt(60*60*24);
+                    batchAddNoteCollect2BloomAndExpire(userId, expireSeconds, bloomUserNoteCollectListKey);
+                });
+
+                // 从数据库中校验笔记是否被收藏
+                int count = noteCollectionDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
+
+                // 未收藏，无法取消收藏操作，抛出业务异常
+                if (count == 0) throw new BizException(ResponseCodeEnum.NOTE_NOT_COLLECTED);
+            }
+            // 布隆过滤器校验目标笔记未被收藏（判断绝对正确）
+            case NOTE_NOT_COLLECTED -> throw new BizException(ResponseCodeEnum.NOTE_NOT_COLLECTED);
+            case NOTE_COLLECTED -> { // 已收藏，但可能存在误判
+                // 查询缓存是否存在
+                Double score = redisTemplate.opsForZSet().score(userNoteCollectZSetKey, userId);
+                if (Objects.isNull(score)) { // 缓存不存在
+                    // 查询数据库
+                    int count = noteCollectionDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
+                    if (count == 0) throw new BizException(ResponseCodeEnum.NOTE_NOT_COLLECTED);
+                }
+            }
+        }
+        // 删除 ZSET 中已收藏的笔记 ID
+        redisTemplate.opsForZSet().remove(userNoteCollectZSetKey, noteId);
+        // TODO: 4. 发送 MQ, 数据更新落库
+
+        return Response.success();
+
+    }
     /**
      * 删除本地笔记缓存
      * @param noteId

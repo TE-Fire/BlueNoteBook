@@ -15,6 +15,7 @@ import com.tefire.note.biz.model.vo.FindNoteDetailRspVO;
 import com.tefire.note.biz.model.vo.LikeNoteReqVO;
 import com.tefire.note.biz.model.vo.PublishNoteReqVO;
 import com.tefire.note.biz.model.vo.TopNoteReqVO;
+import com.tefire.note.biz.model.vo.UnCollectNoteReqVO;
 import com.tefire.note.biz.model.vo.UnlikeNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteReqVO;
 import com.tefire.note.biz.model.vo.UpdateNoteVisibleOnlyMeReqVO;
@@ -83,5 +84,11 @@ public class NoteController {
     @ApiOperationLog(description = "收藏笔记")
     public Response<?> collectNote(@Validated @RequestBody CollectNoteReqVO collectNoteReqVO) {
         return noteService.collectNote(collectNoteReqVO);
+    }
+
+    @PostMapping(value = "/uncollect")
+    @ApiOperationLog(description = "取消收藏笔记")
+    public Response<?> unCollectNote(@Validated @RequestBody UnCollectNoteReqVO unCollectNoteReqVO) {
+        return noteService.unCollectNote(unCollectNoteReqVO);
     }
 }
