@@ -25,4 +25,8 @@ public class CountCollectUnCollectNoteMqDTO {
      */
     private Integer type;
 
+     /**
+     * 笔记发布者 ID
+     */
+    private Long noteCreatorId;
 }

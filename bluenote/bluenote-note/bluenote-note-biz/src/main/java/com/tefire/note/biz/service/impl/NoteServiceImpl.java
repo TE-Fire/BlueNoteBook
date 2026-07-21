@@ -799,36 +799,7 @@ public class NoteServiceImpl implements NoteService {
 
         return Response.success();
     }
-    private Long checkNoteIsExistAndGetCreatorId(Long noteId) {
-        // 先从本地缓存校验
-        String findNoteDetailRspVOStrLocalCache = LOCAL_CACHE.getIfPresent(noteId);
-        FindNoteDetailRspVO findNoteDetailRspVO = JsonUtils.parseObject(findNoteDetailRspVOStrLocalCache, FindNoteDetailRspVO.class);
-
-        if (Objects.isNull(findNoteDetailRspVO)) {
-            // 再从 redis 获取
-            String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
-            String noteDetailJson = redisTemplate.opsForValue().get(noteDetailKey);
-
-            findNoteDetailRspVO = JsonUtils.parseObject(noteDetailJson, FindNoteDetailRspVO.class);
-
-            // 都不存在，从数据库获取
-            if (Objects.isNull(findNoteDetailRspVO)) {
-                Long creatorId = noteDOMapper.selectCreatorIdByNoteId(noteId);
-
-                // 若数据库中也不存在，提示用户
-                if (Objects.isNull(creatorId)) {
-                    throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
-                }
-                // 若数据库存在，异步同步到 缓存
-                threadPoolTaskExecutor.submit(() -> {
-                    FindNoteDetailReqVO findNoteDetailReqVO = FindNoteDetailReqVO.builder().id(noteId).build();
-                    findNoteDetail(findNoteDetailReqVO);
-                });
-                return creatorId;
-            }
-        }
-        return findNoteDetailRspVO.getCreatorId();
-    }
+    
 
     @Override
     public Response<?> collectNote(CollectNoteReqVO collectNoteReqVO) {
@@ -1254,5 +1225,36 @@ public class NoteServiceImpl implements NoteService {
 
         luaArgs[argsLength - 1] = expireSeconds; // 最后一个参数是 ZSet 的过期时间
         return luaArgs;
+    }
+    
+    private Long checkNoteIsExistAndGetCreatorId(Long noteId) {
+        // 先从本地缓存校验
+        String findNoteDetailRspVOStrLocalCache = LOCAL_CACHE.getIfPresent(noteId);
+        FindNoteDetailRspVO findNoteDetailRspVO = JsonUtils.parseObject(findNoteDetailRspVOStrLocalCache, FindNoteDetailRspVO.class);
+
+        if (Objects.isNull(findNoteDetailRspVO)) {
+            // 再从 redis 获取
+            String noteDetailKey = RedisKeyConstants.buildNoteDetailKey(noteId);
+            String noteDetailJson = redisTemplate.opsForValue().get(noteDetailKey);
+
+            findNoteDetailRspVO = JsonUtils.parseObject(noteDetailJson, FindNoteDetailRspVO.class);
+
+            // 都不存在，从数据库获取
+            if (Objects.isNull(findNoteDetailRspVO)) {
+                Long creatorId = noteDOMapper.selectCreatorIdByNoteId(noteId);
+
+                // 若数据库中也不存在，提示用户
+                if (Objects.isNull(creatorId)) {
+                    throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
+                }
+                // 若数据库存在，异步同步到 缓存
+                threadPoolTaskExecutor.submit(() -> {
+                    FindNoteDetailReqVO findNoteDetailReqVO = FindNoteDetailReqVO.builder().id(noteId).build();
+                    findNoteDetail(findNoteDetailReqVO);
+                });
+                return creatorId;
+            }
+        }
+        return findNoteDetailRspVO.getCreatorId();
     }
 }

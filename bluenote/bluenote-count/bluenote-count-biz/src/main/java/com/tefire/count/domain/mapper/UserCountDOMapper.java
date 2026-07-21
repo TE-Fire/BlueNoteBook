@@ -42,4 +42,12 @@ public interface UserCountDOMapper {
      * @return
      */
     int insertOrUpdateLikeTotalByUserId(@Param("count") Integer count, @Param("userId") Long userId);
+
+    /**
+     * 添加记录或更新笔记收藏数
+     * @param count
+     * @param userId
+     * @return
+     */
+    int insertOrUpdateCollectionTotalByUserId(@Param("count") Integer count, @Param("userId") Long userId);
 }
