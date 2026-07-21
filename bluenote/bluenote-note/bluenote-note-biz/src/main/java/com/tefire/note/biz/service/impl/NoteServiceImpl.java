@@ -1002,14 +1002,8 @@ public class NoteServiceImpl implements NoteService {
             }
             // 布隆过滤器校验目标笔记未被收藏（判断绝对正确）
             case NOTE_NOT_COLLECTED -> throw new BizException(ResponseCodeEnum.NOTE_NOT_COLLECTED);
-            case NOTE_COLLECTED -> { // 已收藏，但可能存在误判
-                // 查询缓存是否存在
-                Double score = redisTemplate.opsForZSet().score(userNoteCollectZSetKey, userId);
-                if (Objects.isNull(score)) { // 缓存不存在
-                    // 查询数据库
-                    int count = noteCollectionDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
-                    if (count == 0) throw new BizException(ResponseCodeEnum.NOTE_NOT_COLLECTED);
-                }
+            case NOTE_COLLECTED -> { // 已收藏，但可能存在误判,前面已从redis和数据库进行判断是否存在
+                
             }
         }
         // 删除 ZSET 中已收藏的笔记 ID
