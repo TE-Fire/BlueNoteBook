@@ -17,10 +17,11 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import com.github.phantomthief.collection.BufferTrigger;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import com.tefire.count.constant.MQConstants;
 import com.tefire.count.constant.RedisKeyConstants;
 import com.tefire.count.enums.LikeUnlikeNoteTypeEnum;
+import com.tefire.count.model.dto.AggregationCountLikeUnlikeNoteMqDTO;
 import com.tefire.count.model.dto.CountLikeUnlikeNoteMqDTO;
 import com.tefire.framework.common.util.JsonUtils;
 
@@ -72,14 +73,20 @@ public class CountNoteLikeConsumer implements RocketMQListener<String> {
                 .collect(Collectors.groupingBy(CountLikeUnlikeNoteMqDTO::getNoteId));
 
         // 按组汇总数据，统计出最终的计数
-        // key 为笔记 ID, value 为最终操作的计数
-        Map<Long, Integer> countMap = Maps.newHashMap();
+        // 最终操作的计数对象
+        List<AggregationCountLikeUnlikeNoteMqDTO> countList = Lists.newArrayList();
+
 
         for (Map.Entry<Long, List<CountLikeUnlikeNoteMqDTO>> entry : group.entrySet()) {
+            Long noteId = entry.getKey();
+            Long creatorId = null;
+
             List<CountLikeUnlikeNoteMqDTO> list = entry.getValue();
             // 最终的计数值，默认为 0
             int finalCount = 0;
             for (CountLikeUnlikeNoteMqDTO countLikeUnlikeNoteMqDTO : list) {
+                // 设置笔记发布者用户 ID
+                creatorId = countLikeUnlikeNoteMqDTO.getNoteCreatorId();
                 Integer type = countLikeUnlikeNoteMqDTO.getType();
                 LikeUnlikeNoteTypeEnum likeUnlikeNoteTypeEnum = LikeUnlikeNoteTypeEnum.valueOf(type);
 
@@ -90,26 +97,43 @@ public class CountNoteLikeConsumer implements RocketMQListener<String> {
                     case UNLIKE -> finalCount -= 1;
                 }
             }
-            countMap.put(entry.getKey(), finalCount);
+            // 将分组后统计出的最终计数，存入 countList 中
+            countList.add(AggregationCountLikeUnlikeNoteMqDTO.builder()
+                            .noteId(noteId)
+                            .creatorId(creatorId)
+                            .count(finalCount)
+                            .build());
         }
-        log.info("## 【笔记点赞数】聚合后的计数数据: {}", JsonUtils.toJsonString(countMap));
+        log.info("## 【笔记点赞数】聚合后的计数数据: {}", JsonUtils.toJsonString(countList));
 
         // 更新 redis
-        countMap.forEach((k, v) -> {
-            String redisKey = RedisKeyConstants.buildCountNoteKey(k);
+        countList.forEach(item -> {
+            Long creatorId = item.getCreatorId();
+            Long noteId = item.getNoteId();
+            Integer count = item.getCount();
+
+            // 笔记维度计数 Redis Key
+            String countNoteRedisKey = RedisKeyConstants.buildCountNoteKey(noteId);
             // 判断 Redis 中 Hash 是否存在
-            boolean isExisted = redisTemplate.hasKey(redisKey);
+            boolean isCountNoteExisted = redisTemplate.hasKey(countNoteRedisKey);
 
             // 若存在才会更新
             // (因为缓存设有过期时间，考虑到过期后，缓存会被删除，这里需要判断一下，存在才会去更新，而初始化工作放在查询计数来做)
-            if (isExisted) {
+            if (isCountNoteExisted) {
                 // 对目标用户 Hash 中的点赞数字段进行计数操作
-                redisTemplate.opsForHash().increment(redisKey, RedisKeyConstants.FIELD_LIKE_TOTAL, v);
+                redisTemplate.opsForHash().increment(countNoteRedisKey, RedisKeyConstants.FIELD_LIKE_TOTAL, count);
+            }
+
+            // 更新 redis 用户维度点赞数
+            String countUserRedisKey = RedisKeyConstants.buildCountUserKey(creatorId);
+            boolean isCountUserExisted = redisTemplate.hasKey(countUserRedisKey);
+            if (isCountUserExisted) {
+                redisTemplate.opsForHash().increment(countUserRedisKey, RedisKeyConstants.FIELD_LIKE_TOTAL, count);
             }
         });
 
         // 发送 MQ, 笔记点赞数据落库
-        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(countMap))
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(countList))
                 .build();
 
         // 异步发送 MQ 消息

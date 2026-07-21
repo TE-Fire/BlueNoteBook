@@ -584,7 +584,7 @@ public class NoteServiceImpl implements NoteService {
     public Response<?> likeNote(LikeNoteReqVO likeNoteReqVO) {
         // 1. 校验被点赞的笔记是否存在
         Long noteId = likeNoteReqVO.getId();
-        checkNoteIsExist(noteId);
+        Long creatorId = checkNoteIsExistAndGetCreatorId(noteId);
         // 2. 判断目标笔记，是否已经点赞过
         Long userId = LoginUserContextHolder.getUserId();
 
@@ -695,6 +695,7 @@ public class NoteServiceImpl implements NoteService {
                 .noteId(noteId)
                 .type(LikeUnlikeNoteTypeEnum.LIKE.getCode())
                 .createTime(now)
+                .noteCreatorId(creatorId)
                 .build();
 
         // 构建消息体对象，将 DTO 转为 json 设置到消息体中
@@ -725,7 +726,7 @@ public class NoteServiceImpl implements NoteService {
         Long noteId = unlikeNoteReqVO.getNoteId();
 
         // 1. 校验笔记是否真实存在
-        checkNoteIsExist(noteId);
+        Long creatorId = checkNoteIsExistAndGetCreatorId(noteId);
         // 2. 校验笔记是否被点赞过
         Long userId = LoginUserContextHolder.getUserId();
         String bloomUserNoteLikeListKey = RedisKeyConstants.buildBloomUserNoteLikeListKey(userId);
@@ -778,6 +779,7 @@ public class NoteServiceImpl implements NoteService {
         .noteId(noteId)
         .type(LikeUnlikeNoteTypeEnum.UNLIKE.getCode())
         .createTime(LocalDateTime.now())
+        .noteCreatorId(creatorId)
         .build();
 
         Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(dto)).build();
@@ -797,7 +799,7 @@ public class NoteServiceImpl implements NoteService {
 
         return Response.success();
     }
-    private void checkNoteIsExist(Long noteId) {
+    private Long checkNoteIsExistAndGetCreatorId(Long noteId) {
         // 先从本地缓存校验
         String findNoteDetailRspVOStrLocalCache = LOCAL_CACHE.getIfPresent(noteId);
         FindNoteDetailRspVO findNoteDetailRspVO = JsonUtils.parseObject(findNoteDetailRspVOStrLocalCache, FindNoteDetailRspVO.class);
@@ -811,18 +813,21 @@ public class NoteServiceImpl implements NoteService {
 
             // 都不存在，从数据库获取
             if (Objects.isNull(findNoteDetailRspVO)) {
-                int count = noteDOMapper.selectCountByNoteId(noteId);
+                Long creatorId = noteDOMapper.selectCreatorIdByNoteId(noteId);
 
-                // 数据库中也不存在，提示用户
-                if (count == 0) {
+                // 若数据库中也不存在，提示用户
+                if (Objects.isNull(creatorId)) {
                     throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
                 }
-
                 // 若数据库存在，异步同步到 缓存
-                FindNoteDetailReqVO findNoteDetailReqVO = FindNoteDetailReqVO.builder().id(noteId).build();
-                findNoteDetail(findNoteDetailReqVO);
+                threadPoolTaskExecutor.submit(() -> {
+                    FindNoteDetailReqVO findNoteDetailReqVO = FindNoteDetailReqVO.builder().id(noteId).build();
+                    findNoteDetail(findNoteDetailReqVO);
+                });
+                return creatorId;
             }
         }
+        return findNoteDetailRspVO.getCreatorId();
     }
 
     @Override
@@ -830,7 +835,7 @@ public class NoteServiceImpl implements NoteService {
         Long noteId = collectNoteReqVO.getNoteId();
 
         // 1. 校验被收藏的笔记是否存在
-        checkNoteIsExist(noteId);
+        Long creatorId = checkNoteIsExistAndGetCreatorId(noteId);
 
         // 2. 判断目标笔记，是否已经收藏过
         Long userId = LoginUserContextHolder.getUserId();
@@ -940,6 +945,7 @@ public class NoteServiceImpl implements NoteService {
             .noteId(noteId)
             .type(CollectUnCollectNoteTypeEnum.COLLECT.getCode()) // 收藏笔记
             .createTime(now)
+            .noteCreatorId(creatorId)
             .build();
         
         Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(collectUnCollectNoteMqDTO)).build();
@@ -966,7 +972,7 @@ public class NoteServiceImpl implements NoteService {
     public Response<?> unCollectNote(UnCollectNoteReqVO unCollectNoteReqVO) {
         Long noteId = unCollectNoteReqVO.getNoteId();
         // 1. 校验笔记是否真实存在
-        checkNoteIsExist(noteId);
+        Long creatorId = checkNoteIsExistAndGetCreatorId(noteId);
         Long userId = LoginUserContextHolder.getUserId();
         // 2. 校验笔记是否被收藏过
         // 布隆过滤器 Key
@@ -1014,6 +1020,7 @@ public class NoteServiceImpl implements NoteService {
                 .noteId(noteId)
                 .type(CollectUnCollectNoteTypeEnum.UN_COLLECT.getCode()) // 取消收藏笔记
                 .createTime(LocalDateTime.now())
+                .noteCreatorId(creatorId)
                 .build();
 
         // 构建消息对象，并将 DTO 转成 Json 字符串设置到消息体中
